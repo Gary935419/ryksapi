@@ -1,0 +1,138 @@
+<include file="Index:meta" />
+<title>详情</title>
+<link href="__PUBLIC__/control/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
+</head>
+<body>
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">用户头像：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <img src="{$data.user.head_img}" style="width: 150px;">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">用户姓名：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.user.name}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">用户电话：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.user.account}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">他人电话：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.other}
+            </div>
+        </div>
+        <?php if (!empty($data['driver_user']['head_img'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">司机头像：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <img src="{$data.driver_user.head_img}" style="width: 150px;">
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['driver_user']['name'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">司机姓名：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driver_user.name}
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['driver_user']['account'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">司机电话：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driver_user.account}
+            </div>
+        </div>
+        <?php } ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">下单时间：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.add_time|date="Y-m-d H:i:s",###}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">预约时间：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.order_time}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">车型：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.car_type_id}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">线路：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.route_city_font1} - {$data.route_city_font2}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">位置：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.location}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">目的位置：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.arrival_position}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">价格：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.price}
+            </div>
+        </div>
+        <?php
+            if (!empty($data['coupon'])) {
+                ?>
+                <div class="row cl">
+                    <label class="form-label col-xs-4 col-sm-3">优惠价格：</label>
+                    <div class="formControls col-xs-8 col-sm-8">
+                        {$data.coupon}
+                    </div>
+                </div>
+                <?php
+            }
+        ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">坐车模式：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.car_mode}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">人数：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.people_num}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">状态：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.status}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">线上线下：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.line}
+            </div>
+        </div>
+    </form>
+</article>
+<include file="Index:footer" />
+</body>
+</html>

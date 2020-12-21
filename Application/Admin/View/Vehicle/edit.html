@@ -1,0 +1,97 @@
+<include file="Index:meta" />
+<title>车辆设置</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 运营管理 <span class="c-gray en">&gt;</span> 车辆设置 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+<form id="form-admin-add">
+<table class="table table-border table-bordered table-bg table-hover">
+    <thead>
+    <tr class="text-c">
+        <th width="100">车型</th>
+        <th width="100">起步价</th>
+        <th width="100">起步公里</th>
+        <th width="100">每公里单价</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <if condition="$lists">
+    <foreach name="lists" item="vo">
+        <tr class="text-c">
+            <td>{$vo.name}</td>
+            <td><input type="text" class="input-text" name="start_price[]" value="{$vo.start_price}"></td>
+            <td><input type="text" class="input-text"  name="start_distance[]" value="{$vo.start_distance}"></td>
+            <td><input type="text" class="input-text"  name="price[]" value="{$vo.price}"></td>
+        </tr>
+
+    </foreach>
+    </if>
+
+        <tr>
+            <td colspan="3"><input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;保存&nbsp;&nbsp;"></td>
+        </tr>
+    </tbody>
+</table>
+</form>
+</div>
+<include file="Index:footer" />
+<script type="text/javascript" src="__PUBLIC__/control/lib/icheck/jquery.icheck.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/jquery.validate.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/messages_zh.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/vendor/jquery-form/jquery.form.js"></script>
+<script type="text/javascript">
+    function shuaxin() {
+        location.replace(location.href);
+    }
+    $(function(){
+        $("#form-admin-add").validate({
+            rules:{
+                car_cj1_seat:{
+                    required:true,
+                },
+                car_cj2_seat:{
+                    required:true,
+                },
+                car_cj3_seat:{
+                    required:true,
+                },
+                car_sq1_price:{
+                    required:true,
+                },
+                car_sq2_price:{
+                    required:true,
+                },
+                car_sq3_price:{
+                    required:true,
+                },
+                car_hy1_price:{
+                    required:true,
+                },
+                car_hy2_price:{
+                    required:true,
+                },
+                car_hy3_price:{
+                    required:true,
+                },
+            },
+            onkeyup:false,
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '__APP__/Admin/Vehicle/edit_submit',
+                    success: function(data) {
+                        if (data) {
+                            shuaxin();
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

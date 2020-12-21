@@ -1,0 +1,52 @@
+<include file="Index:meta" />
+<title>新增</title>
+</head>
+<body>
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2"><span class="c-red">*</span>城市名：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input type="text" class="input-text" id="name" name="name">
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</article>
+<include file="Index:footer" />
+<script type="text/javascript" src="__PUBLIC__/control/lib/icheck/jquery.icheck.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/jquery.validate.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/messages_zh.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/vendor/jquery-form/jquery.form.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $("#form-admin-add").validate({
+            rules:{
+                name:{
+                    required:true,
+                },
+            },
+            onkeyup:false,
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '__APP__/Admin/Route/add_city_submit',
+                    success: function(data) {
+                        if (data) {
+                            parent.shuaxin();
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

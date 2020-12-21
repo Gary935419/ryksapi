@@ -1,0 +1,103 @@
+<include file="Index:meta" />
+<title>车辆设置</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 运营管理 <span class="c-gray en">&gt;</span> 城际路线 <span class="c-gray en">&gt;</span> 配置 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <p style="text-align: center">【 {$data.route_city_font1} - {$data.route_city_font2} 】</p>
+    <form id="form-admin-add">
+        <table class="table table-border table-bordered table-bg table-hover">
+            <thead>
+            <tr class="text-c">
+                <th width="100">车型</th>
+                <th width="100">实际价格</th>
+                <th width="100">优惠价格</th>
+                <th width="100">提示语句</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-c">
+                <td>轿车<input type="hidden" name="route_id" value="{$data.id}"></td>
+                <td><input type="text" class="input-text" id="real_price1" name="real_price1" value="{$route_price1.real_price}"></td>
+                <td><input type="text" class="input-text" id="sale_price1" name="sale_price1" value="{$route_price1.sale_price}"></td>
+                <td><input type="text" class="input-text" id="tishi1" name="tishi1" value="{$route_price1.tishi}"></td>
+            </tr>
+            <tr class="text-c">
+                <td>七座商务车</td>
+                <td><input type="text" class="input-text" id="real_price2" name="real_price2" value="{$route_price2.real_price}"></td>
+                <td><input type="text" class="input-text" id="sale_price2" name="sale_price2" value="{$route_price2.sale_price}"></td>
+                <td><input type="text" class="input-text" id="tishi2" name="tishi2" value="{$route_price2.tishi}"></td>
+            </tr>
+            <tr class="text-c">
+                <td>豪华商务车</td>
+                <td><input type="text" class="input-text" id="real_price3" name="real_price3" value="{$route_price3.real_price}"></td>
+                <td><input type="text" class="input-text" id="sale_price3" name="sale_price3" value="{$route_price3.sale_price}"></td>
+                <td><input type="text" class="input-text" id="tishi3" name="tishi3" value="{$route_price3.tishi}"></td>
+            </tr>
+            <tr>
+                <td colspan="4"><input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;保存&nbsp;&nbsp;"></td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+<include file="Index:footer" />
+<script type="text/javascript" src="__PUBLIC__/control/lib/icheck/jquery.icheck.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/jquery.validate.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/jquery.validation/1.14.0/messages_zh.min.js"></script>
+<script type="text/javascript" src="__PUBLIC__/control/vendor/jquery-form/jquery.form.js"></script>
+<script type="text/javascript">
+    function shuaxin() {
+        location.replace(location.href);
+    }
+    $(function(){
+        $("#form-admin-add").validate({
+            rules:{
+                real_price1:{
+                    required:true,
+                },
+                real_price2:{
+                    required:true,
+                },
+                real_price3:{
+                    required:true,
+                },
+                sale_price1:{
+                    required:true,
+                },
+                sale_price2:{
+                    required:true,
+                },
+                sale_price3:{
+                    required:true,
+                },
+                tishi1:{
+                    required:true,
+                },
+                tishi2:{
+                    required:true,
+                },
+                tishi3:{
+                    required:true,
+                },
+            },
+            onkeyup:false,
+            focusCleanup:true,
+            success:"valid",
+            submitHandler:function(form){
+                $(form).ajaxSubmit({
+                    type: 'post',
+                    url: '__APP__/Admin/Route/disposed_submit',
+                    success: function(data) {
+                        if (data) {
+                            shuaxin();
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

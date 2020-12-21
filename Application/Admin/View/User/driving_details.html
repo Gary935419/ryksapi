@@ -1,0 +1,101 @@
+<include file="Index:meta" />
+<title>详情</title>
+<link href="__PUBLIC__/control/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
+</head>
+<body>
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">头像：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <img src="/{$data.head_img}" style="width: 150px;">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">电话：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_account}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">姓名：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_name}
+            </div>
+        </div>
+        <?php if (!empty($data['cards'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证号：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_cards}
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['car_number'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">车牌号：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_car_number}
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['times'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">领证日期：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_times}
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['img_cards_face'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证正面：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_cards_face}" data-lightbox="gallery" data-title="身份证正面"><img src="/{$data.driving_img_cards_face}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['img_cards_side'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证背面：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_cards_side}" data-lightbox="gallery" data-title="身份证背面"><img src="/{$data.driving_img_cards_side}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['img_drivers'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">驾驶证：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_drivers}" data-lightbox="gallery" data-title="驾驶证"><img src="/{$data.driving_img_drivers}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <?php } ?>
+        <?php if (!empty($data['img_vehicle'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">行驶证：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_vehicle}" data-lightbox="gallery" data-title="身份证背面"><img src="/{$data.driving_img_vehicle}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <?php } ?>
+        
+        <?php if (!empty($data['attribute'])) { ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">属性：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_attribute}
+            </div>
+        </div>
+        <?php } ?>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">注册时间：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.add_time|date="Y-m-d H:i:s",###}
+            </div>
+        </div>
+    </form>
+</article>
+<include file="Index:footer" />
+</body>
+</html>

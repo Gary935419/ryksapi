@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1.0" />
+    <link rel="stylesheet" href="css/common_app.css" />
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <title>如邮快送</title>
+</head>
+<body>
+    <div class="head"><span>下载如邮快送</span></div>
+    <div class="logo">
+        <img src="images/app_logo.png" width="71px;"/>
+        <p>如邮快送 司机端</p>
+    </div>
+    <div class="clear_ios"></div>
+    <a  class="btn_a btn_aios" href="#"><div class="btn"><img src="images/btn_ios.png" width="245px" class="img_ios btn_pingguo"/></div></a>
+    <div class="clear_andro"></div>
+    <a  class="btn_a btn_aandro" href="#"><div class="btn"><img src="images/btn_andro.png" width="245px" class="img_ios btn_pingguo"/></div></a>
+
+
+
+    <!--弹出层js-->
+    <script>
+        $(".btn_pingguo").click(function(){
+            var ua = navigator.userAgent.toLowerCase();
+            if(ua.match(/MicroMessenger/i)=="micromessenger") {
+                alert("请点击微信右上角按钮，然后在浏览器中打开");
+            }else {
+                if (/iphone|ipad|ipod/.test(ua)) {
+                    $('.btn_aios').attr('href','https://itunes.apple.com/us/app/rong-zhou-xing-si-ji-duan/id1179899610?l=zh&ls=1&mt=8');
+                } else if (/android/.test(ua)) {
+                    $('.btn_aandro').attr('href','http://openbox.mobilem.360.cn/index/d/sid/3606331');
+                }
+            }
+        })
+    </script>
+
+
+
+
+</body>
+</html>

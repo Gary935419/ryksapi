@@ -1,0 +1,116 @@
+<include file="Index:meta" />
+<title>认证审核</title>
+<link href="__PUBLIC__/control/lib/lightbox2/2.8.1/css/lightbox.css" rel="stylesheet" type="text/css" >
+</head>
+<body>
+<article class="page-container">
+    <form class="form form-horizontal" id="form-admin-add">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">头像：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <img src="/{$data.head_img}" style="width: 150px;">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">电话：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.account}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">姓名：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_name}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证号：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_cards}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">车牌号：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_car_number}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">领证日期：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_times}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证正面：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_cards_face}" data-lightbox="gallery" data-title="身份证正面"><img src="/{$data.driving_img_cards_face}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">身份证背面：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_cards_side}" data-lightbox="gallery" data-title="身份证背面"><img src="/{$data.driving_img_cards_side}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">驾驶证：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_drivers}" data-lightbox="gallery" data-title="驾驶证"><img src="/{$data.driving_img_drivers}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">行驶证：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                <div class="picbox"><a href="/{$data.driving_img_vehicle}" data-lightbox="gallery" data-title="身份证背面"><img src="/{$data.driving_img_vehicle}" style="width: 150px;"></a></div>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">车型：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_car_type_font}
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">属性：</label>
+            <div class="formControls col-xs-8 col-sm-8">
+                {$data.driving_attribute}
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+                <input onclick="check_rz({$data.id},1)" class="btn btn-primary radius" value="&nbsp;&nbsp;通过认证&nbsp;&nbsp;">
+                &nbsp;
+                <input onclick="check_rz({$data.id},2)" class="btn btn-danger radius" value="&nbsp;&nbsp;不通过认证&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</article>
+<include file="Index:footer" />
+<script type="text/javascript">
+    function check_rz(id, check) {
+        if (check == 1) {
+            layer.confirm('确认通过认证？',function(index){
+                $.ajax({
+                    type: 'post',
+                    url: '__APP__/Admin/User/driving_ajax_check',
+                    data: {
+                        uid: id,
+                        ucheck: 1
+                    },
+                    success:function(data){
+                        if (data) {
+                            parent.shuaxin();
+                        }
+                    }
+                });
+            });
+        } else if (check == 2) {
+            layer_show('请输入理由','__APP__/Admin/User/driving_reason?id={$data.id}','400','200');
+        }
+    }
+</script>
+<script type="text/javascript" src="__PUBLIC__/control/lib/lightbox2/2.8.1/js/lightbox-plus-jquery.min.js"></script>
+</body>
+</html>

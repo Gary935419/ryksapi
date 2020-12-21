@@ -1,0 +1,57 @@
+<include file="Index:meta" />
+<title>列表</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 用户管理 <span class="c-gray en">&gt;</span> 乘客列表 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <form action="__APP__/Admin/User/passenger_lists" method="get">
+        <div class="text-c">
+            姓名：
+            <input type="text" name="name" value="{:I('name')}" placeholder="姓名" style="width:150px" class="input-text">
+            电话：
+            <input type="text" name="account" value="{:I('account')}" placeholder="电话" style="width:150px" class="input-text">
+            <button name="search" class="btn btn-success" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+        </div>
+    </form>
+    <div class="cl pd-5 bg-1 bk-gray mt-20"><span class="r" style="height: 31px;line-height: 31px;">共有数据：<strong>{$count}</strong> 条</span> </div>
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-bg table-hover">
+            <thead>
+            <tr class="text-c">
+                <th width="50">ID</th>
+                <th width="260">头像</th>
+                <th width="260">姓名</th>
+                <th width="260">电话</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <if condition="$lists">
+            <foreach name="lists" item="vo">
+                <tr class="text-c">
+                    <td>{$vo.id}</td>
+                    <td><img src="/{$vo.head_img}" style="height: 20px;"></td>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.account}</td>
+                    <td class="td-manage">
+                        <a onClick="user_details('详情','__APP__/Admin/User/details?id={$vo.id}','','510')" style="text-decoration:none" href="javascript:;" title="详情"><i class="Hui-iconfont">&#xe665;</i></a>
+                    </td>
+                </tr>
+            </foreach>
+            </if>
+            </tbody>
+        </table>
+        <div class="page">{$page}</div>
+    </div>
+</div>
+<include file="Index:footer" />
+<script type="text/javascript">
+    function shuaxin() {
+        location.replace(location.href);
+    }
+    function user_details(title,url,w,h) {
+        layer_show(title,url,w,h);
+    }
+</script>
+</body>
+</html>

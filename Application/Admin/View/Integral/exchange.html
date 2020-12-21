@@ -1,0 +1,84 @@
+<include file="Index:meta" />
+<title>列表</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 财务管理 <span class="c-gray en">&gt;</span> 积分兑换 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <form action="" method="get">
+        <div class="text-c">
+        </div>
+    </form>
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r" style="height: 31px;line-height: 31px;">共有数据：<strong>{$count}</strong> 条</span>
+    </div>
+    <if condition="$lists">
+        <div class="mt-20">
+            <table class="table table-border table-bordered table-bg table-hover">
+                <thead>
+                <tr class="text-c">
+                    <th width="50">ID</th>
+                    <th width="200">商品名</th>
+                    <th width="80">用户姓名</th>
+                    <th width="80">用户电话</th>
+                    <th width="80">兑换时间</th>
+                    <th width="80">状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <foreach name="lists" item="vo">
+                    <tr class="text-c">
+                        <td>{$vo.id}</td>
+                        <td>{$vo.integral_name}</td>
+                        <td>{$vo.user_name}</td>
+                        <td>{$vo.user_account}</td>
+                        <td>{$vo.add_time}</td>
+                        <td>{$vo.status}</td>
+                        <td class="td-manage">
+                            <if condition="$vo.status eq '未发'">
+                                <a style="text-decoration:none" class="ml-5" onClick="check('{$vo.id}')" href="javascript:;" title="发货">[ 发货 ]</a>
+                            </if>
+                        </td>
+                    </tr>
+                </foreach>
+                </tbody>
+            </table>
+            <div class="page">{$page}</div>
+        </div>
+    </if>
+</div>
+<include file="Index:footer" />
+<script type="text/javascript">
+    function shuaxin() {
+        location.replace(location.href);
+    }
+    function add(title,url,w,h) {
+        layer_show(title,url,w,h);
+    }
+    function lists(title,url,w,h) {
+        layer_show(title,url,w,h);
+    }
+    function exchange(title,url,w,h) {
+        layer_show(title,url,w,h);
+    }
+    function check(id) {
+        layer.confirm('确认要发货吗？',function(index){
+            $.ajax({
+                type: 'post',
+                url: '__APP__/Admin/Integral/check_submit',
+                data: {
+                    uid: id
+                },
+                success:function(data) {
+                    if (data == 1) {
+                        shuaxin();
+                    } else {
+                        layer.msg(data, {icon: 2, time: 2000});
+                    }
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>

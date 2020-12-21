@@ -1,0 +1,90 @@
+<include file="Index:meta" />
+<title>列表</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> 财务管理 <span class="c-gray en">&gt;</span> 提现审核 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <form action="__APP__/Admin/Postal/lists" method="get">
+        <div class="text-c">
+            状态：<span class="select-box inline">
+            <select name="status" class="select">
+                <option value="">所有</option>
+                <foreach name="status_lists" item="vo" key="k">
+                    <option value="{$k}"<if condition="I('status') eq $k"> selected</if>>{$vo}</option>
+                </foreach>
+            </select>
+            </span>
+            <button name="search" class="btn btn-success" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+        </div>
+    </form>
+    <div class="cl pd-5 bg-1 bk-gray mt-20">
+        <span class="r" style="height: 31px;line-height: 31px;">共有数据：<strong>{$count}</strong> 条</span>
+    </div>
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-bg table-hover">
+            <thead>
+            <tr class="text-c">
+                <th width="50">ID</th>
+                <th width="80">司机姓名</th>
+                <th width="100">司机电话</th>
+                <th width="200">开户行</th>
+                <th width="80">姓名</th>
+                <th width="180">卡号</th>
+                <th width="80">提现金额</th>
+                <th width="130">申请时间</th>
+                <th width="60">状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <if condition="$lists">
+            <foreach name="lists" item="vo">
+                <tr class="text-c">
+                    <td>{$vo.id}</td>
+                    <td>{$vo.driver_name}</td>
+                    <td>{$vo.driver_account}</td>
+                    <td>{$vo.bank_account}</td>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.card_number}</td>
+                    <td>{$vo.money}</td>
+                    <td>{$vo.add_time}</td>
+                    <td>{$vo.status}</td>
+                    <td class="td-manage">
+                        <if condition="$vo.status eq '申请提现'">
+                            <a style="text-decoration:none" class="ml-5" onClick="check('{$vo.id}')" href="javascript:;" title="审核">[ 审核 ]</a>
+                        </if>
+                    </td>
+                </tr>
+            </foreach>
+            </if>
+            </tbody>
+        </table>
+        <div class="page">{$page}</div>
+    </div>
+</div>
+<include file="Index:footer" />
+<script type="text/javascript">
+    function shuaxin() {
+        location.replace(location.href);
+    }
+    function check(id) {
+        layer.confirm('确认要审核通过吗？',function(index){
+            $.ajax({
+                type: 'post',
+                url: '__APP__/Admin/Postal/check_submit',
+                data: {
+                    uid: id
+                },
+                success:function(data) {
+                    if (data == 1) {
+                        shuaxin();
+                    } else {
+                        layer.msg(data, {icon: 2, time: 2000});
+                    }
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
