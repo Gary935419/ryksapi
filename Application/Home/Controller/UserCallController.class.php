@@ -221,6 +221,7 @@ class UserCallController extends CommonController
             'tel' => $data['tel'],
             'address1' => $data['address1'],
             'address2' => $data['address2'],
+            'order_status' => 1,
             'big_order_id' => $order_id
         ];
         $this->OrderTownModel->add_order($add_data);
@@ -287,6 +288,7 @@ class UserCallController extends CommonController
             'tel' => $data['tel'],
             'address1' => $data['address1'],
             'address2' => $data['address2'],
+            'order_status' => 1,
             'big_order_id' => $order_id
         ];
         $order_traffic_id = $this->OrderTrafficModel->add_order($add_data);
@@ -615,27 +617,24 @@ class UserCallController extends CommonController
     }
 
     /**
-     * 评价教练
+     * 评价订单
      */
     public function evaluate()
     {
         $data = self::$_DATA;
-
-        if (empty($data['taker_type_id']) || empty($data['order_small_id']) || empty($data['evaluate'])) {
+        if (empty($data['type']) || empty($data['order_small_id']) || empty($data['evaluate'])) {
             echoOk(301, '必填项不能为空', []);
         }
-
-        switch ($data['taker_type_id']) {
-            case 1: // 城际拼车
-                $this->OrderIntercityModel->evaluate($data['order_small_id'], $data['evaluate']);
+        switch ($data['type']) {
+            case 1: // 专车 顺风 代买
+                $this->OrderTrafficModel->evaluate($data['order_small_id'], $data['evaluate']);
                 break;
-            case 2: // 市区出行
+            case 2: // 代驾
                 $this->OrderTownModel->evaluate($data['order_small_id'], $data['evaluate']);
                 break;
-            case 3: // 同城货运
+            default:
                 break;
         }
-
         echoOk(200, '操作成功');
     }
 
@@ -686,14 +685,13 @@ class UserCallController extends CommonController
         if (empty($data['id'])) {
             echoOk(301, '必填项不能为空', []);
         }
-
-        $con = [
-            'id' => $data['id'],
-        ];
-
-        $lists_one = $this->OrderTrafficModel->get_trip_order_info($con);
-
-
+        if ($data['type'] == 2){
+            //代驾
+            $lists_one = $this->OrderTownModel->get_trip_details($data['id']);
+        }else{
+            //专车 顺风 代买
+            $lists_one = $this->OrderTrafficModel->get_trip_details($data['id']);
+        }
         echoOk(200, '获取成功', $lists_one);
     }
     //计算订单金额.

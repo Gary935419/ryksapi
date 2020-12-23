@@ -435,18 +435,54 @@ class OrderTownModel extends Model
         if ($order) {
             $UserModel            = new \Home\Model\UserModel();
             $user                 = $UserModel->get_info( $order['driver_id'] );
-            $re['order_small_id'] = $order['id'];
             $re['head_img']       = $user['head_img'];
             $re['name']           = $user['name'];
             $re['account']        = $user['account'];
             $re['car_number']     = $user['car_number'];
             $re['attribute']      = $user['attribute'];
+
+            $re['order_small_id'] = $order['id'];
             $re['times']          = date( 'Y-m-d H:i:s' , $order['add_time'] );
-            $re['status']         = $order['status'];
+            $re['appointment_time'] = empty($order['appointment_time'])?'':date('Y-m-d H:i:s', $order['appointment_time']);
+            $re['getorder_time'] = empty($order['getorder_time'])?'':date('Y-m-d H:i:s', $order['getorder_time']);
+            $re['takegoods_time'] = empty($order['takegoods_time'])?'':date('Y-m-d H:i:s', $order['takegoods_time']);
+            $re['complete_time'] = empty($order['complete_time'])?'':date('Y-m-d H:i:s', $order['complete_time']);
+            $re['status'] = $order['status'];
             $re['start_location'] = $order['start_location'];
-            $re['end_location']   = $order['end_location'];
-            $re['price']          = $order['price'];
-            $re['evaluate']       = $order['evaluate'];
+            $re['end_location'] = $order['end_location'];
+            $re['price'] = $order['price'];
+            $re['tip_price'] = $order['tip_price'];
+            $re['preferential_price'] = $order['preferential_price'];
+            $re['distribution_km'] = $order['distribution_km'];
+            $re['evaluate'] = $order['evaluate'];
+            $re['user_id'] = $order['user_id'];
+            $re['goods_remarks'] = $order['remarks'];
+            $re['number'] = $order['number'];
+            switch ($order['status']){
+                case 1:
+                    $re['status_msg'] = "待接单";
+                    break;
+                case 2:
+                    $re['status_msg'] = "已接单";
+                    break;
+                case 3:
+                    $re['status_msg'] = "已上车";
+                    break;
+                case 4:
+                    $re['status_msg'] = "已开始";
+                    break;
+                case 5:
+                    $re['status_msg'] = "已支付";
+                    break;
+                case 6:
+                    $re['status_msg'] = "已完成";
+                    break;
+                case 7:
+                    $re['status_msg'] = "已取消";
+                    break;
+                default:
+                    $re['status_msg'] = "没人接";
+            }
         }
         return $re;
     }
@@ -511,7 +547,7 @@ class OrderTownModel extends Model
     }
 
     /**
-     * 评价教练
+     * 评价订单
      * @param $id
      * @param $content
      */
