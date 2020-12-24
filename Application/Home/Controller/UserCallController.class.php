@@ -424,19 +424,17 @@ class UserCallController extends CommonController
     public function cancel()
     {
         $data = self::$_DATA;
-
-        if (empty($data['taker_type_id']) || empty($data['order_small_id'])) {
+        if (empty($data['type']) || empty($data['order_small_id'])) {
             echoOk(301, '必填项不能为空', []);
         }
-
-        switch ($data['taker_type_id']) {
-            case 1: // 城际拼车
-                $this->OrderIntercityModel->cancel_order($data['order_small_id']);
+        switch ($data['type']) {
+            case 1: // 专车 顺风 代买
+                $this->OrderTrafficModel->cancel_order($data['order_small_id']);
                 break;
-            case 2: // 市区出行
+            case 2: // 代驾
                 $this->OrderTownModel->cancel_order($data['order_small_id']);
                 break;
-            case 3: // 同城货运
+            default:
                 break;
         }
 

@@ -10,21 +10,29 @@ class OrderTrafficModel extends Model
 
     public function cancel_order($id)
     {
-        $OrderWaitingModel = new \Home\Model\OrderWaitingModel();
         $UserWorkingModel = new \Home\Model\UserWorkingModel();
-
+        $UserModel  = new \Home\Model\UserModel();
         $where['id'] = $id;
         $order = $this->get_info($id);
-
-
-        $s = $this->where($where)->save(['order_status' => 9,'status'=>7] ); // 已取消(7)
-
-
-//        $waiting = $OrderWaitingModel->get_user_info($order['user_id']);
+        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $order_price = $order['price'];
+        $getorder_time = $order['getorder_time'];
+        $now_time = time();
+        $getorder_time_now = floatval($getorder_time) + 300;
+        // ----- 根据状态来取消订单 ----- //
+        if ($order['status'] == 1) { // 待接单(1)
+            $money_new = floatval($order_price) + floatval($userinfo['money']);
+        } else {
+            if ($getorder_time_now >= $now_time){
+                $money_new = floatval($order_price) + floatval($userinfo['money']);
+            }else{
+                $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+            }
+        }
+        $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
+        $UserModel->save_info( $order['user_id'] , array ( 'money' => $money_new ) );
         $UserWorkingModel->set_working($order['driver_id'], array('status_send' => '0','status'=>1)); // 还原该司机上班推送状态
 
-
-        return $s;
         // ----- 根据状态来取消订单 ----- //
 //        if ($order['status'] == 1) { // 待接单(1)
 //
@@ -249,11 +257,28 @@ class OrderTrafficModel extends Model
             $re['tip_price'] = $order['tip_price'];
             $re['preferential_price'] = $order['preferential_price'];
             $re['distribution_km'] = $order['distribution_km'];
-            $re['evaluate'] = $order['evaluate'];
+            $re['evaluate'] = empty($order['evaluate'])?'':$order['evaluate'];
             $re['user_id'] = $order['user_id'];
             $re['goods_remarks'] = $order['goods_remarks'];
             $re['goods_name'] = $order['goods_name'];
             $re['number'] = $order['number'];
+            $re['order_status'] = $order['order_status'];
+            switch ($order['order_status']){
+                case 2:
+                    $re['status_msg'] = "待接单";
+                    break;
+                case 3:
+                    $re['status_msg'] = "已接单";
+                    break;
+                case 8:
+                    $re['status_msg'] = "已完成";
+                    break;
+                default:
+                    $re['status_msg'] = "没人接";
+            }
+            if ($order['status'] == 7){
+                $re['status_msg'] = "已取消";
+            }
         }
         return $re;
     }

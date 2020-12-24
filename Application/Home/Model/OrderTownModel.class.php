@@ -161,27 +161,30 @@ class OrderTownModel extends Model
     {
         $OrderWaitingModel = new \Home\Model\OrderWaitingModel();
         $UserWorkingModel  = new \Home\Model\UserWorkingModel();
-
+        $UserModel  = new \Home\Model\UserModel();
         $where['id'] = array ( 'eq' , $id );
         $order       = $this->get_info( $id );
-
+        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $order_price = $order['price'];
+        $getorder_time = $order['getorder_time'];
+        $now_time = time();
+        $getorder_time_now = floatval($getorder_time) + 300;
         // ----- 根据状态来取消订单 ----- //
         if ($order['status'] == 1) { // 待接单(1)
-
-            $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
-
             $waiting = $OrderWaitingModel->get_user_info( $order['user_id'] );
             $OrderWaitingModel->user_del_order( $order['user_id'] ); // 删除等待订单
-
             $UserWorkingModel->set_working( $waiting['driver_id'] , array ( 'status_send' => '0' ) ); // 还原该司机上班推送状态
-
-        } elseif ($order['status'] == 2) { // 待接驾(2)
-
-            $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
-
+            $money_new = floatval($order_price) + floatval($userinfo['money']);
+        } else {
             $UserWorkingModel->set_working( $order['driver_id'] , array ( 'status' => '1' ) ); // 空闲(1)
-
+            if ($getorder_time_now >= $now_time){
+                $money_new = floatval($order_price) + floatval($userinfo['money']);
+            }else{
+                $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+            }
         }
+        $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
+        $UserModel->save_info( $order['user_id'] , array ( 'money' => $money_new ) );
     }
 
     /**
@@ -454,10 +457,11 @@ class OrderTownModel extends Model
             $re['tip_price'] = $order['tip_price'];
             $re['preferential_price'] = $order['preferential_price'];
             $re['distribution_km'] = $order['distribution_km'];
-            $re['evaluate'] = $order['evaluate'];
+            $re['evaluate'] = empty($order['evaluate'])?'':$order['evaluate'];
             $re['user_id'] = $order['user_id'];
             $re['goods_remarks'] = $order['remarks'];
             $re['number'] = $order['number'];
+            $re['order_status'] = $order['order_status'];
             switch ($order['status']){
                 case 1:
                     $re['status_msg'] = "待接单";
