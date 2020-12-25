@@ -28,7 +28,18 @@ class CouponModel extends Model {
             return [];
         }
     }
-
+    /**
+     * 修改优惠券状态
+     * @param $id
+     * @param $data
+     * @return bool
+     */
+    public function saveCoupon($id, $data)
+    {
+        $where['id'] = array('eq', $id);
+        $temp = $this->where($where)->save($data);
+        return $temp;
+    }
     /**
      * 获取优惠券
      * @param $user_id
@@ -68,7 +79,13 @@ class CouponModel extends Model {
         }
     }
 
-
+    /**
+     * 推荐用户下单 上级获得优惠券
+     * @param $user_id
+     */
+    public function addCoupon($coupon) {
+        $this->add($coupon);
+    }
     /**
      * 获取优惠券信息
      * @param $id
@@ -76,7 +93,7 @@ class CouponModel extends Model {
      */
     public function get_coupon_by_id($id) {
         $where = 'id = "'.$id.'"';
-        $where .= ' AND end_time > '.time();
+//        $where .= ' AND end_time > '.time();
         $coupon = $this->where($where)->find();
         if ($coupon) {
             return $coupon;

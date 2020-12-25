@@ -198,6 +198,9 @@ class UserCallController extends CommonController
             if (!$couponInfo) {
                 echoOk('301', '优惠券信息错误');
             }
+            if ($couponInfo['end_time'] < time()){
+                echoOk('301', '优惠券已经过期！');
+            }
         } else {
             $couponInfo['price'] = 0;
         }
@@ -231,6 +234,29 @@ class UserCallController extends CommonController
         ];
         $this->OrderTownModel->add_order($add_data);
 
+        //验证是否有邀请人
+        $user_info = $this->UserModel->get_user($data['id']);
+        if (!empty($user_info['invitation_code1_up'])){
+            $invitation_code1_up = $user_info['invitation_code1_up'];
+            $where['invitation_code1'] = $invitation_code1_up;
+            $user_info_up = $this->UserModel->getWhereInfo($where);
+            $coupon = [
+                'user_id' => $user_info_up['id'],
+                'money' => 1,
+                'type' => 1,
+                'add_time' => time(),
+                'end_time' => time() + 604800
+            ];
+            for ($i=1; $i<=5; $i++)
+            {
+                $this->CouponModel->addCoupon($coupon);
+            }
+        }
+        //优惠券状态变更
+        if (!empty($couponInfo['price'])){
+            $set['is_use'] = 1;
+            $this->CouponModel->saveCoupon($data['couponId'],$set);
+        }
         // ----- 叫车 ----- //
 //        $this->OrderTownModel->online_send($order_id);
 
@@ -261,6 +287,9 @@ class UserCallController extends CommonController
             $couponInfo = $this->CouponModel->get_coupon_by_id($data['couponId']);
             if (!$couponInfo) {
                 echoOk('301', '优惠券信息错误');
+            }
+            if ($couponInfo['end_time'] < time()){
+                echoOk('301', '优惠券已经过期！');
             }
         } else {
             $couponInfo['price'] = 0;
@@ -320,7 +349,28 @@ class UserCallController extends CommonController
         }
 
         //验证是否有邀请人
-        
+        $user_info = $this->UserModel->get_user($data['id']);
+        if (!empty($user_info['invitation_code1_up'])){
+            $invitation_code1_up = $user_info['invitation_code1_up'];
+            $where['invitation_code1'] = $invitation_code1_up;
+            $user_info_up = $this->UserModel->getWhereInfo($where);
+            $coupon = [
+                'user_id' => $user_info_up['id'],
+                'money' => 1,
+                'type' => 1,
+                'add_time' => time(),
+                'end_time' => time() + 604800
+            ];
+            for ($i=1; $i<=5; $i++)
+            {
+                $this->CouponModel->addCoupon($coupon);
+            }
+        }
+        //优惠券状态变更
+        if (!empty($couponInfo['price'])){
+            $set['is_use'] = 1;
+            $this->CouponModel->saveCoupon($data['couponId'],$set);
+        }
         echoOk(200, '下单成功', $order_id);
     }
 
