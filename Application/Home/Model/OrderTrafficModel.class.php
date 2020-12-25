@@ -29,7 +29,7 @@ class OrderTrafficModel extends Model
                 $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
             }
         }
-        $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
+        $this->where( $where )->save( array ( 'status' => '7','order_status' => '9' ) ); // 已取消(7)
         $UserModel->save_info( $order['user_id'] , array ( 'money' => $money_new ) );
         $UserWorkingModel->set_working($order['driver_id'], array('status_send' => '0','status'=>1)); // 还原该司机上班推送状态
 

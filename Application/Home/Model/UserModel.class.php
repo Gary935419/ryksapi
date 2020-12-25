@@ -33,7 +33,11 @@ class UserModel extends Model
         if ($is_account) {
             echoOk(301, '该账号已存在');
         }
-
+        $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        for ($i = 0, $str = '', $lc = strlen($chars)-1; $i < 6; $i++) {
+            $str .= $chars[mt_rand(0, $lc)];
+        }
+        $invitation_code1 = $str;
         $add = [
             'type' => $type,
             'account' => $account,
@@ -41,7 +45,7 @@ class UserModel extends Model
             'head_img' => 'Public/photo_default.png',
             'add_time' => time(),
             'open_id' => $openId,
-
+            'invitation_code1' => $invitation_code1,
         ];
         $re = $this->add($add);
 

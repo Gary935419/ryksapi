@@ -9,6 +9,7 @@ use Home\Model\TakerTypeModel;
 use Home\Model\SetConfigModel;
 use Home\Model\CarTypeModel;
 use Home\Model\CarPriceSettingModel;
+use Home\Model\UserAddressModel;
 use Home\Model\TimeSlotModel;
 use Home\Model\TelephoneModel;
 use Home\Model\RouteModel;
@@ -49,6 +50,7 @@ class UserCallController extends CommonController
     private $SetConfigModel;
     private $CarTypeModel;
     private $CarPriceSettingModel;
+    private $UserAddressModel;
     private $TimeSlotModel;
     private $TelephoneModel;
     private $RouteModel;
@@ -70,6 +72,7 @@ class UserCallController extends CommonController
         $this->SetConfigModel = new SetConfigModel();
         $this->CarTypeModel = new CarTypeModel();
         $this->CarPriceSettingModel = new CarPriceSettingModel();
+        $this->UserAddressModel = new UserAddressModel();
         $this->TimeSlotModel = new TimeSlotModel();
         $this->TelephoneModel = new TelephoneModel();
         $this->RouteModel = new RouteModel();
@@ -303,6 +306,16 @@ class UserCallController extends CommonController
 
 //        $this->OrderTownModel->online_send_new($order_id);
 
+        //页面展现起点地址
+        $user_address_start = $this->UserAddressModel->get_user_address_start($data);
+        if (empty($user_address_start)){
+            $this->UserAddressModel->user_address_insert($data,1);
+        }
+        //页面展现结束地址
+        $user_address_end = $this->UserAddressModel->get_user_address_end($data);
+        if (empty($user_address_end)){
+            $this->UserAddressModel->user_address_insert($data,2);
+        }
         echoOk(200, '下单成功', $order_id);
     }
 
@@ -635,7 +648,22 @@ class UserCallController extends CommonController
         }
         echoOk(200, '操作成功');
     }
-
+    // 我的常用地址
+    public function my_address()
+    {
+        $data = self::$_DATA;
+        if (empty($data['userId']) || empty($data['user_type'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+        $con = [
+            'user_id' => $data['userId'],
+            'user_type' => $data['user_type'],
+            'page' => $data['page'] ?: 1,
+            'limit' => $data['limit'] ?: 10,
+        ];
+        $lists = $this->UserAddressModel->get_address_lists($con);
+        echoOk(200, '获取成功', $lists);
+    }
     // 我的订单
     public function my_order()
     {
