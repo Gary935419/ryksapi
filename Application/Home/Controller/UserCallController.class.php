@@ -29,6 +29,8 @@ use Home\Model\BalanceRecordModel;
  * @property TakerTypeModel $TakerTypeModel
  * @property SetConfigModel $SetConfigModel
  * @property CarTypeModel $CarTypeModel
+ * @property UserAddressModel $UserAddressModel
+ * @property CarPriceSettingModel $CarPriceSettingModel
  * @property TimeSlotModel $TimeSlotModel
  * @property TelephoneModel $TelephoneModel
  * @property RouteModel $RouteModel
@@ -316,6 +318,9 @@ class UserCallController extends CommonController
         if (empty($user_address_end)){
             $this->UserAddressModel->user_address_insert($data,2);
         }
+
+        //验证是否有邀请人
+        
         echoOk(200, '下单成功', $order_id);
     }
 
@@ -663,6 +668,26 @@ class UserCallController extends CommonController
         ];
         $lists = $this->UserAddressModel->get_address_lists($con);
         echoOk(200, '获取成功', $lists);
+    }
+    // 设置邀请码
+    public function invitation()
+    {
+        $data = self::$_DATA;
+        if (empty($data['user_id']) || empty($data['invitation'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+        $conwhere = [
+            'invitation_code1' => $data['invitation'],
+        ];
+        $resultwhere = $this->UserModel->getWhereInfo($conwhere);
+        if (empty($resultwhere)){
+            echoOk(301, '邀请码不存在！', []);
+        }
+        $con = [
+            'invitation_code1_up' => $data['invitation'],
+        ];
+        $result = $this->UserModel->save_info($data['user_id'],$con);
+        echoOk(200, '设置成功', $result);
     }
     // 我的订单
     public function my_order()

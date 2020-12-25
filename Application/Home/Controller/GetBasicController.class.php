@@ -139,6 +139,11 @@ class GetBasicController extends CommonController
      */
     public function get_text_info()
     {
+        $data = self::$_DATA;
+
+        if (empty( $data['user_id'] )) {
+            echoOk( 301 , '必填项不能为空' );
+        }
         $jijiaText         = $this->SetConfigModel->get_content( 'user_jijia' );
         $kaipiaoText       = $this->SetConfigModel->get_content( 'user_kaipiao' );
         $zhinanText        = $this->SetConfigModel->get_content( 'user_zhinan' );
@@ -146,12 +151,13 @@ class GetBasicController extends CommonController
         $phoneText         = $this->SetConfigModel->get_content( 'user_contact_us' );
         $user_about_usText = $this->SetConfigModel->get_content( 'user_about_us' );
 //        $user_yingyezhizhao = $this->SetConfigModel->get_content('user_yingyezhizhao');
-
+        $user_info         = $this->UserModel->get_user($data['user_id']);
         $set_config['jijia']           = $jijiaText;
         $set_config['kaipiao']         = $kaipiaoText;
         $set_config['zhinan']          = $zhinanText;
         $set_config['wenti']           = $wentiText;
         $set_config['user_contact_us'] = $phoneText;
+        $set_config['user_info'] = empty($user_info['invitation_code1_up'])?'1':'2';
 //        $set_config['user_about_us'] = $user_about_usText;
 //        $set_config['user_yingyezhizhao'] = $user_yingyezhizhao; //营业执照
         $set_config['wx_gongzhonghao'] = '如邮快运';
