@@ -24,7 +24,7 @@ class UserCouponController extends CommonController {
         $data = self::$_DATA;
 
         if (empty($data['id'])) {
-            echoOk(301, '必填项不能为空', []);
+            echoOk(301, '没有传递用户id', []);
         }
 
         $con = [
@@ -36,8 +36,6 @@ class UserCouponController extends CommonController {
         
         if ($lists) {
             echoOk(200, '获取成功', $lists);
-        } else {
-            echoOk(301, '暂无优惠券', []);
         }
     }
 

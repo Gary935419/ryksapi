@@ -51,17 +51,18 @@ class PayMerchantsController extends CommonController
      * @return [type]    [description]
      */
     public function sendMoney(){
-        $data = $_POST;
-        if (empty($data['withdrawal_price'])) {
+        $params = $_POST;
+        if (empty($params['withdrawal_price'])) {
             echoOk(301, '提现金额不能为空', []);
         }
-        if (empty($data['user_id'])) {
+        if (empty($params['user_id'])) {
             echoOk(301, '请先登录', []);
         }
-        $user_info = $this->UserModel->get_user($data['user_id']);
+        $user_info = $this->UserModel->get_user($params['user_id']);
         $money = $user_info['money'];
         $re_openid = $user_info['open_id'];
-        $total_amount = (100) * $data['withdrawal_price'];
+        $total_amount = (100) * $params['withdrawal_price'];
+
         $data=array(
             'mch_appid'=>'wx95ff8ddda8027413',                            //商户账号appid
             'mchid'=> '1580673321',                                       //商户号
@@ -94,13 +95,13 @@ class PayMerchantsController extends CommonController
 //        $responseObj = simplexml_load_string($res, 'SimpleXMLElement', LIBXML_NOCDATA);
 //        $res= $responseObj->result_code; //SUCCESS 如果返回来SUCCESS,则发生成功，处理自己的逻辑
         if ($res === 'SUCCESS'){
-            $money_new = floatval($money) - floatval($data['withdrawal_price']);
+            $money_new = floatval($money) - floatval($params['withdrawal_price']);
             $set['money'] = $money_new;
-            $this->UserModel->save_info($data['user_id'],$set);
+            $this->UserModel->save_info($params['user_id'],$set);
             $insert = [
-                'user_id' => $data['user_id'],
+                'user_id' => $params['user_id'],
                 'user_type' => 1,
-                'price' => $data['withdrawal_price'],
+                'price' => $params['withdrawal_price'],
                 'add_time' => time(),
                 'withdrawal_type' => 1,
             ];
