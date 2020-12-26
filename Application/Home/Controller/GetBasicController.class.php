@@ -140,10 +140,7 @@ class GetBasicController extends CommonController
     public function get_text_info()
     {
         $data = self::$_DATA;
-
-        if (empty( $data['user_id'] )) {
-            echoOk( 301 , '必填项不能为空' );
-        }
+        
         $jijiaText         = $this->SetConfigModel->get_content( 'user_jijia' );
         $kaipiaoText       = $this->SetConfigModel->get_content( 'user_kaipiao' );
         $zhinanText        = $this->SetConfigModel->get_content( 'user_zhinan' );
