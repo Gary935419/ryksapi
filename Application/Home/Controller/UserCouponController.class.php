@@ -36,6 +36,8 @@ class UserCouponController extends CommonController {
         
         if ($lists) {
             echoOk(200, '获取成功', $lists);
+        }else{
+            echoOk(301, '暂无优惠券', $lists);
         }
     }
 

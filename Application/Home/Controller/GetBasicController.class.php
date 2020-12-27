@@ -120,15 +120,15 @@ class GetBasicController extends CommonController
     {
         $data = self::$_DATA;
 
-        if (empty( $data['type'] )) {
-            echoOk( 301 , '必填项不能为空' );
-        }
-
         $set_config = '';
-        if ($data['type'] == 1) { // 用户端
-            $set_config = $this->SetConfigModel->get_content( 'user_deal' );
-        } elseif ($data['type'] == 2) { // 司机端
+        if ($data['type'] == 1 || empty($data['type'])) { // 用户端 专车送  顺风送
+            $set_config = $this->SetConfigModel->get_content( 'user_mini12' );
+        } elseif ($data['type'] == 4) { // 司机端
             $set_config = $this->SetConfigModel->get_content( 'driver_deal' );
+        } elseif ($data['type'] == 2) { // 用户端 代买
+            $set_config = $this->SetConfigModel->get_content( 'user_mini3' );
+        } elseif ($data['type'] == 3) { // 用户端 代驾
+            $set_config = $this->SetConfigModel->get_content( 'user_mini4' );
         }
 
         echoOk( 200 , '获取成功' , $set_config );

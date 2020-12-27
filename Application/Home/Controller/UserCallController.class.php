@@ -227,12 +227,29 @@ class UserCallController extends CommonController
             'tip_price' => $data['tip_price'],
             'name' => $data['name'],
             'tel' => $data['tel'],
+            'name1' => $data['name1'],
+            'tel1' => $data['tel1'],
             'address1' => $data['address1'],
             'address2' => $data['address2'],
             'order_status' => 1,
             'big_order_id' => $order_id
         ];
         $this->OrderTownModel->add_order($add_data);
+
+        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])){
+            //页面展现起点地址
+            $user_address_start = $this->UserAddressModel->get_user_address_start($data);
+            if (empty($user_address_start)){
+                $this->UserAddressModel->user_address_insert($data,1);
+            }
+        }
+        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])){
+            //页面展现结束地址
+            $user_address_end = $this->UserAddressModel->get_user_address_end($data);
+            if (empty($user_address_end)){
+                $this->UserAddressModel->user_address_insert($data,2);
+            }
+        }
 
         //验证是否有邀请人
         $user_info = $this->UserModel->get_user($data['id']);
@@ -320,6 +337,8 @@ class UserCallController extends CommonController
             'tip_price' => $data['tip_price'],
             'name' => $data['name'],
             'tel' => $data['tel'],
+            'name1' => $data['name1'],
+            'tel1' => $data['tel1'],
             'address1' => $data['address1'],
             'address2' => $data['address2'],
             'order_status' => 1,
@@ -337,15 +356,19 @@ class UserCallController extends CommonController
 
 //        $this->OrderTownModel->online_send_new($order_id);
 
-        //页面展现起点地址
-        $user_address_start = $this->UserAddressModel->get_user_address_start($data);
-        if (empty($user_address_start)){
-            $this->UserAddressModel->user_address_insert($data,1);
+        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])){
+            //页面展现起点地址
+            $user_address_start = $this->UserAddressModel->get_user_address_start($data);
+            if (empty($user_address_start)){
+                $this->UserAddressModel->user_address_insert($data,1);
+            }
         }
-        //页面展现结束地址
-        $user_address_end = $this->UserAddressModel->get_user_address_end($data);
-        if (empty($user_address_end)){
-            $this->UserAddressModel->user_address_insert($data,2);
+        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])){
+            //页面展现结束地址
+            $user_address_end = $this->UserAddressModel->get_user_address_end($data);
+            if (empty($user_address_end)){
+                $this->UserAddressModel->user_address_insert($data,2);
+            }
         }
 
         //验证是否有邀请人
@@ -708,7 +731,7 @@ class UserCallController extends CommonController
     {
         $data = self::$_DATA;
         if (empty($data['userId']) || empty($data['user_type'])) {
-            echoOk(301, '必填项不能为空', []);
+            echoOk(301, '请您先去登录！', []);
         }
         $con = [
             'user_id' => $data['userId'],
