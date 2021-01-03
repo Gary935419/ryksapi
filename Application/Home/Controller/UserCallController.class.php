@@ -774,8 +774,8 @@ class UserCallController extends CommonController
 
         $con = [
             'id' => $data['id'],
-            'page' => $data['page'] ?: 1,
-            'limit' => $data['limit'] ?: 10,
+            'page' => $data['page']?'':1,
+            'limit' => $data['limit']?'':10,
         ];
 
         if ($data['category_id'] == 4) {
@@ -972,8 +972,8 @@ class UserCallController extends CommonController
         $tip = empty($data['tip'])?0:$data['tip'];
         //获取保价费
         $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
-        $info['money'] =round($money,2)  + floatval($tip) + floatval($protect_price);
-//        $info['money'] =0.01;
+        $info['money'] = round($money,2)  + floatval($tip) + floatval($protect_price);
+        $info['money'] = 0.01;
         $info['distance'] =floatval($distance_now) / 1000;
         $info['tip_price'] =$tip;
         echoOk(200, '获取成功', $info);

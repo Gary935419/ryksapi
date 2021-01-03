@@ -204,55 +204,74 @@ class DriverPickController extends CommonController
     public function handle_popup()
     {
         $data = self::$_DATA;
-
         if (empty( $data['id'] ) || empty( $data['waiting_id'] ) || empty( $data['handle'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
-
+        $driverInfo = $this->UserModel->get_info( $data['id'] );
+        if (empty($driverInfo)){
+            echoOk( 301 , '数据错误' );
+        }
+        if ($driverInfo['credit_points'] < 60){
+            echoOk( 301 , '信誉分低于60分、不可接单，请您联系客服处理分数问题！' );
+        }
         switch ($data['handle']) {
             case 1: // 接单
-
                 sleep( 0.5 );
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
-
-                if (!empty( $orderInfo['driver_id'] )) {
-                    echoOk( 301 , '已经接单' );
-                    break;
+                $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+                if (!empty($orderInfo)){
+                    if (!empty( $orderInfo['driver_id'] )) {
+                        echoOk( 301 , '已经接单' );
+                        break;
+                    }
+                    $this->OrderTrafficModel->startTrans();
+                    // 2) ----- 改变小单状态 -----
+                    $order_save = [
+                        'driver_id'    => $data['id'] ,
+                        'status'       => '2' ,// 小单状态: 2 订单开始
+                        'order_status' => '3', // 3 已接单
+                        'getorder_time' => time() // 接单时间
+                    ];
+                    $this->OrderTrafficModel->set_order( $data['waiting_id'] , $order_save );
+                    // 3) ----- 改变司机派送状态、上班状态 -----
+                    $working_save = [
+                        'status_send' => '0' ,
+                        'status'      => '3' , // 状态:行程中(3)
+                    ];
+                    $this->UserWorkingModel->set_working( $data['id'] , $working_save );
+                    $this->OrderTrafficModel->commit();
+                    //发送取货码
+                    if ($driverInfo) {
+                        $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['waiting_id'] ] )->find();
+                        $text            = '您所接订单的取货码为:' . $orderExtendInfo['pick_up_code'];
+                        $this->send_code( $driverInfo['account'] , $text );
+                    }
+                }elseif (!empty($orderInfotown)){
+                    if (!empty( $orderInfotown['driver_id'] )) {
+                        echoOk( 301 , '已经接单' );
+                        break;
+                    }
+                    $this->OrderTownModel->startTrans();
+                    // 2) ----- 改变小单状态 -----
+                    $order_save = [
+                        'driver_id'    => $data['id'] ,
+                        'status'       => '2' ,// 小单状态: 2 待接驾
+                        'order_status' => '3', // 3 已接单
+                        'getorder_time' => time() // 接单时间
+                    ];
+                    $this->OrderTownModel->save_info( $data['waiting_id'] , $order_save );
+                    // 3) ----- 改变司机派送状态、上班状态 -----
+                    $working_save = [
+                        'status_send' => '0' ,
+                        'status'      => '3' , // 状态:行程中(3)
+                    ];
+                    $this->UserWorkingModel->set_working( $data['id'] , $working_save );
+                    $this->OrderTownModel->commit();
+                }else{
+                    echoOk( 301 , '数据错误' );
                 }
-
-                $this->OrderWaitingModel->startTrans();
-
-                // 2) ----- 改变小单状态 -----
-                $order_save = [
-                    'driver_id'    => $data['id'] ,
-                    'status'       => '2' ,// 小单状态: 2 订单开始
-                    'order_status' => '3' // 3 已接单
-                ];
-                $this->OrderTrafficModel->set_order( $data['waiting_id'] , $order_save );
-
-                // 3) ----- 改变司机派送状态、上班状态 -----
-                $working_save = [
-                    'status_send' => '0' ,
-                    'status'      => '3' , // 状态:行程中(3)
-                ];
-                $this->UserWorkingModel->set_working( $data['id'] , $working_save );
-
-                $this->OrderWaitingModel->commit();
-
-
-                //发送取货码
-                $driverInfo = $this->UserModel->get_info( $data['id'] );
-
-                if ($driverInfo) {
-                    $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['waiting_id'] ] )->find();
-                    $text            = '您所接订单的取货码为:' . $orderExtendInfo['pick_up_code'];
-                    $a               = $this->send_code( $driverInfo['account'] , $text );
-
-                }
-
                 //绑定虚拟号码
 //                $bingMobileData = $this->bingMobile();
-
                 echoOk( 200 , '接单成功' , $data['waiting_id'] );
                 break;
             case 2: // 拒单
@@ -260,7 +279,6 @@ class DriverPickController extends CommonController
                 break;
         }
     }
-//    }
 
     /**
      * 获取订单信息_不知道干啥
@@ -372,33 +390,32 @@ class DriverPickController extends CommonController
         if (empty( $data['taker_type_id'] ) || empty( $data['order_small_id'] )) {
             echoOk( 301 , '必填项不能为空' , [] );
         }
-//
-//        switch ($data['taker_type_id']) {
-//            case 1: // 城际拼车
 
-        $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
-
-        if ($orderInfo['order_status'] != 9) {
-            $status = $this->OrderTrafficModel->cancel_order( $data['order_small_id'] ); // 取消订单
-
-            if ($status) {
-                echoOk( 200 , '操作成功' );
-
-            } else {
-                echoOk( 301 , '操作失败' );
-
-            }
-        } else {
-            echoOk( 301 , '订单已经取消' );
-
+        switch ($data['taker_type_id']) {
+            case 1:
+                //专车送  顺风送  代买
+                $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
+                if ($orderInfo['order_status'] != 9) {
+                    $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
+                    echoOk( 200 , '操作成功' ,$result);
+                } else {
+                    echoOk( 301 , '订单已经取消' );
+                }
+                break;
+            case 2:
+                //代驾订单取消
+                $orderInfo = $this->OrderTownModel->where( [ 'id' => $data['order_small_id'] ] )->find();
+                if ($orderInfo['status'] != 7) {
+                    $result = $this->OrderTownModel->cancel_order_driver($data['order_small_id']);
+                    echoOk( 200 , '操作成功' ,$result);
+                } else {
+                    echoOk( 301 , '订单已经取消' );
+                }
+                break;
+            case 3:
+                echoOk( 301 , '数据错误' );
+                break;
         }
-//                break;
-//            case 2: // 市区出行
-//                $this->OrderTownModel->cancel_order($data['order_small_id']);
-//                break;
-//            case 3: // 同城货运
-//                break;
-//        }
 
     }
 

@@ -9,8 +9,7 @@ class VerifyCodeModel extends Model{
      * @param $phone 手机
      * @return int 验证码
      */
-    public function add_code($phone) {
-        $code = rand(100000,999999); // 随机验证码
+    public function add_code($phone,$code) {
         
         $where['account'] = array('eq', $phone);
         $data = $this->where($where)->find();

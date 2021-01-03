@@ -43,7 +43,7 @@ class OrderTownModel extends Model
         // ----- 模型 -----
         $userWorkingModel  = new \Home\Model\UserWorkingModel();
         $orderWaitingModel = new \Home\Model\OrderWaitingModel();
-
+        $DriverSendLogModel = new \Home\Model\DriverSendLogModel();
         // ----- 订单详情 -----
         $where['id'] = array ( 'eq' , $order_id );
         $order       = $this->where( $where )->find();
@@ -56,30 +56,30 @@ class OrderTownModel extends Model
             'latitude'       => $order['start_latitude'] ,
             'small_order_id' => $order['id']
         ];
-        $driver_id = $userWorkingModel->search_working_driver( $condition );
-
+        $driver_id = $userWorkingModel->search_working_driver_one( $condition );
+        $waiting_id = $order_id;
         // ----- 等待订单信息 -----
-        $waiting_data = [
-            'taker_type_id' => '2' , // 市区出行(2)
-            'driver_id'     => $driver_id ? $driver_id : '' ,
-            'user_id'       => $order['user_id'] ,
-            'order_id'      => $order['id'] ,
-            'add_time'      => time()
-        ];
-        if ($waiting_id) {
-            $orderWaitingModel->set_order( $waiting_id , $waiting_data );
-        } else {
-            $waiting_id = $orderWaitingModel->add_waiting( $waiting_data );
-        }
+//        $waiting_data = [
+//            'taker_type_id' => '2' , // 市区出行(2)
+//            'driver_id'     => $driver_id ? $driver_id : '' ,
+//            'user_id'       => $order['user_id'] ,
+//            'order_id'      => $order['id'] ,
+//            'add_time'      => time()
+//        ];
+//        if ($waiting_id) {
+//            $orderWaitingModel->set_order( $waiting_id , $waiting_data );
+//        } else {
+//            $waiting_id = $orderWaitingModel->add_waiting( $waiting_data );
+//        }
 
         // ----- 派单 -----
-        if ($driver_id != 0) { // 已找到司机
-            $working      = $userWorkingModel->get_working( $driver_id );
-            $save_working = [
-                'status_send' => '1' , // 设置派单状态为正在派单(1)
-                'been_order'  => $working['been_order'] . '[' . $order['id'] . ']' // 已推订单ID集
-            ];
-            $userWorkingModel->set_working( $driver_id , $save_working );
+        if (!empty($driver_id)) { // 已找到司机
+//            $working      = $userWorkingModel->get_working( $driver_id );
+//            $save_working = [
+//                'status_send' => '1' , // 设置派单状态为正在派单(1)
+//                'been_order'  => $working['been_order'] . '[' . $order['id'] . ']' // 已推订单ID集
+//            ];
+//            $userWorkingModel->set_working( $driver_id , $save_working );
 
             $title   = '如邮快送';
             $content = '您有一个新的订单';
@@ -88,7 +88,7 @@ class OrderTownModel extends Model
                 'waiting_id'    => $waiting_id
             ];
             $JModel  = new \Home\Model\JpushModel();
-            $rs      = $JModel->sj_send_alias( $driver_id , $title , $content , $extras ); // 发送司机消息
+            $JModel->sj_send_alias( $driver_id , $title , $content , $extras ); // 发送司机消息
         }
     }
 
@@ -97,7 +97,7 @@ class OrderTownModel extends Model
         // ----- 模型 -----
         $userWorkingModel = new \Home\Model\UserWorkingModel();
 //        $orderWaitingModel = new \Home\Model\OrderWaitingModel();
-
+        $DriverSendLogModel = new \Home\Model\DriverSendLogModel();
         // ----- 订单详情 -----
         $where['id'] = array ( 'eq' , $order_id );
         $order       = $this->table( 'order_traffic' )->where( $where )->find();
@@ -110,12 +110,10 @@ class OrderTownModel extends Model
             'latitude'       => $order['start_latitude'] ,
             'small_order_id' => $order['id']
         ];
-        $driver_id = $userWorkingModel->search_working_driver( $condition );
-
-
+        $driver_ids = $userWorkingModel->search_working_driver( $condition );
         $waiting_id = $order_id;
         // ----- 派单 -----
-        if ($driver_id != 0) { // 已找到司机
+        if (!empty($driver_ids)) { // 已找到司机
 
             $title   = '如邮快送';
             $content = '您有一个新的订单';
@@ -124,17 +122,9 @@ class OrderTownModel extends Model
                 'waiting_id'    => $waiting_id
             ];
             $JModel  = new \Home\Model\JpushModel();
-
-            if (is_array( $driver_id )) {
-                foreach ($driver_id as $item) {
-                    $res = $JModel->sj_send_alias( $item , $title , $content , $extras ); // 发送司机消息
-
-                    $data['dateline']  = date( 'Y-m-d H:i:s',time() );
-                    $data['driver_id'] = $item;
-                    $data['order_id']  = $order_id;
-                    $data['res']       = json_encode( $res );
-                    $this->table( 'driver_send_log' )->add( $data );
-
+            if (is_array( $driver_ids )) {
+                foreach ($driver_ids as $item) {
+                    $JModel->sj_send_alias( $item , $title , $content , $extras ); // 发送司机消息
                 }
             }
         }
@@ -186,7 +176,36 @@ class OrderTownModel extends Model
         $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
         $UserModel->save_info( $order['user_id'] , array ( 'money' => $money_new ) );
     }
+    /**
+     * 取消订单
+     * @param $id
+     */
+    public function cancel_order_driver( $id )
+    {
+        $UserWorkingModel  = new \Home\Model\UserWorkingModel();
+        $UserModel  = new \Home\Model\UserModel();
+        $where['id'] = array ( 'eq' , $id );
+        $order       = $this->get_info( $id );
+        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $getorder_time = $order['getorder_time'];
+        $now_time = time();
+        $getorder_time_now = floatval($getorder_time) + 300;
 
+        // 还原该司机上班推送状态
+        $UserWorkingModel->set_working($order['driver_id'], array('status_send' => '0','status'=>1));
+        $credit_points_old = $userinfo['credit_points'];
+        $credit_points_now = 0;
+        if ($getorder_time_now < $now_time){
+            $credit_points_now = floatval($credit_points_old) - 5;
+            $UserModel->save_info( $order['user_id'] , array ( 'credit_points' => $credit_points_now ) );
+        }
+        $this->where( $where )->save( array ( 'getorder_time' => '','driver_id' => '','status' => '1','order_status' => '2' ) );
+        $result = array();
+        $result['credit_points_old'] = $credit_points_old;
+        $result['credit_points_now'] = empty($credit_points_now)?$credit_points_old:$credit_points_now;
+        $result['credit_points_change'] = floatval($credit_points_old) - floatval($credit_points_now);
+        return $result;
+    }
     /**
      * 改变状态
      * @param $order_id

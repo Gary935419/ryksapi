@@ -48,10 +48,10 @@ class UserController extends CommonController
         if (empty( $data['account'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
+        $code = rand(100000,999999); // 随机验证码
+        $this->VerifyCodeModel->add_code($data['account'],$code); // 添加验证码
 
-        $this->VerifyCodeModel->add_code( $data['account'] ); // 添加验证码
-
-        echoOk( 200 , '发送成功' );
+        echoOk( 200 , '发送成功', $code);
     }
 
     /**

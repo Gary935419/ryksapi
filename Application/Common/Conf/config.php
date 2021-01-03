@@ -28,8 +28,11 @@ return array(
 	
 	'push_AppKey'			=>  'd87df067d7b549fa95e94ea4', // 如邮快送 AppKey
 	'push_Secret'			=>  '53088a93b090dee85197fa80', // 如邮快送 Master Secret
-	'sj_push_AppKey'		=>  '44e22c56a8b3dfb80ee68196', // 如邮快送司机 AppKey
-	'sj_push_Secret'		=>  '9a14b558c96d199907fbf55f', // 如邮快送司机 Master Secret
+//	'sj_push_AppKey'		=>  '44e22c56a8b3dfb80ee68196', // 如邮快送司机 AppKey
+//	'sj_push_Secret'		=>  '9a14b558c96d199907fbf55f', // 如邮快送司机 Master Secret
+
+    'sj_push_AppKey'		=>  'ad154baeb7f88237c3447d80', // 如邮快送司机 AppKey
+    'sj_push_Secret'		=>  'a2b60ae4b4e0df278f042758', // 如邮快送司机 Master Secret
 
 //	'web_address'			=>	'http://192.168.110.83/',
 	'web_address'			=>	'http://www.rysas.com/',

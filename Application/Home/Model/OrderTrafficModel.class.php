@@ -51,6 +51,32 @@ class OrderTrafficModel extends Model
 //
 //        }
     }
+    public function cancel_order_driver($id)
+    {
+        $UserWorkingModel = new \Home\Model\UserWorkingModel();
+        $UserModel  = new \Home\Model\UserModel();
+        $where['id'] = $id;
+        $order = $this->get_info($id);
+        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $getorder_time = $order['getorder_time'];
+        $now_time = time();
+        $getorder_time_now = floatval($getorder_time) + 300;
+        $credit_points_old = $userinfo['credit_points'];
+        $credit_points_now = 0;
+        if ($getorder_time_now < $now_time){
+            $credit_points_now = floatval($credit_points_old) - 5;
+            $UserModel->save_info( $order['user_id'] , array ( 'credit_points' => $credit_points_now ) );
+        }
+        $result = array();
+        $result['credit_points_old'] = $credit_points_old;
+        $result['credit_points_now'] = empty($credit_points_now)?$credit_points_old:$credit_points_now;
+        $result['credit_points_change'] = floatval($credit_points_old) - floatval($credit_points_now);
+        // 还原该司机上班推送状态
+        $UserWorkingModel->set_working($order['driver_id'], array('status_send' => '0','status'=>1));
+        $this->where( $where )->save( array ( 'getorder_time' => '','driver_id' => '','status' => '1','order_status' => '2' ) );
+
+        return $result;
+    }
     /**
      * 修改订单支付状态
      * @param $id
