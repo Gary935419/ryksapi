@@ -232,6 +232,7 @@ class UserCallController extends CommonController
             'address1' => $data['address1'],
             'address2' => $data['address2'],
             'order_status' => 1,
+            'order_type' => 4,
             'big_order_id' => $order_id
         ];
         $this->OrderTownModel->add_order($add_data);
