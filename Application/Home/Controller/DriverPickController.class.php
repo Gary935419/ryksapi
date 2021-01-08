@@ -85,7 +85,8 @@ class DriverPickController extends CommonController
             $user['working_status']      = $this->UserWorkingModel->get_working_status( $data['id'] );
             $user['working_status_type'] = $working['taker_type_id'] ? $working['taker_type_id'] : '0';
             $user['order_id']            = $this->OrderTrafficModel->work_get_id( $data['id'] ) ?: '0';
-
+            $user['order_traffic_list']  = $this->OrderTrafficModel->work_get_order_ing($data['id']);
+            $user['order_town_list']     = $this->OrderTownModel->work_get_order_ing($data['id']);
             echoOk( 200 , '获取成功' , $user );
         } else {
             echoOk( 301 , '没有数据' , [] );
@@ -111,7 +112,7 @@ class DriverPickController extends CommonController
 
         $add  = [
             'driver_id'      => $data['id'] ,
-            'taker_type_id'  => $data['taker_type_id'] ,
+            'taker_type_id'  => 2 ,
             'car_type_id'    => $data['car_type_id'] ,
             'status'         => '1' ,
             'longitude'      => $data['longitude'] ,
@@ -179,19 +180,63 @@ class DriverPickController extends CommonController
     {
         $data = self::$_DATA;
 
-        if (empty( $data['id'] ) || empty( $data['waiting_id'] )) {
+        if (empty( $data['id'] ) || empty( $data['waiting_id'] ) || empty( $data['longitude'] ) || empty( $data['latitude'] ) || empty( $data['taker_type_id'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
 
         // 获取显示信息
         $user  = $this->UserModel->get_info( $data['id'] );
-        $order = $this->OrderTrafficModel->get_info( $data['waiting_id'] );
+        if ($data['taker_type_id'] == 1){
+            $OrderTraffic = $this->OrderTrafficModel->get_info( $data['waiting_id'] );
+            $OrderTown = array();
+        }else{
+            $OrderTraffic = array();
+            $OrderTown = $this->OrderTownModel->get_info( $data['waiting_id'] );
+        }
+        //腾讯lbskey
+        $key = 'JF5BZ-ZPE33-ILI3C-YIMB2-4EOB2-7XBJ3';
+        if(!empty($OrderTraffic)){
+            $from = $data['latitude'] . ',' . $data['longitude'];
+            $to = $OrderTraffic['start_latitude'] . ',' . $OrderTraffic['start_longitude'];
+            $distanceInfo = file_get_contents("http://apis.map.qq.com/ws/distance/v1/?mode=driving&from=$from&to=$to&key=$key");
+            $distanceInfonow = json_decode($distanceInfo, true);
+            $pickup_distance = $distanceInfonow['result']['elements'][0]['distance']; //司机距离出发点距离
+            $from1 = $OrderTraffic['start_latitude'] . ',' . $OrderTraffic['start_longitude'];
+            $to1 = $OrderTraffic['end_latitude'] . ',' . $OrderTraffic['end_longitude'];
+            $distanceInfo1 = file_get_contents("http://apis.map.qq.com/ws/distance/v1/?mode=driving&from=$from1&to=$to1&key=$key");
+            $distanceInfonow1 = json_decode($distanceInfo1, true);
+            $delivery_distance = $distanceInfonow1['result']['elements'][0]['distance']; //出发点到终点距离
+            $start_location = empty($OrderTraffic['start_location'])?'暂无出发地':$OrderTraffic['start_location'];
+            $end_location = empty($OrderTraffic['end_location'])?'暂无终点地':$OrderTraffic['end_location'];
+            $order_type = empty($OrderTraffic['order_type'])?'666':$OrderTraffic['order_type'];
+            $appointment_time = empty($OrderTraffic['appointment_time'])?'666':$OrderTraffic['appointment_time'];
+        }elseif (!empty($OrderTown)){
+            $from = $data['latitude'] . ',' . $data['longitude'];
+            $to = $OrderTown['start_latitude'] . ',' . $OrderTown['start_longitude'];
+            $distanceInfo = file_get_contents("http://apis.map.qq.com/ws/distance/v1/?mode=driving&from=$from&to=$to&key=$key");
+            $distanceInfonow = json_decode($distanceInfo, true);
+            $pickup_distance = $distanceInfonow['result']['elements'][0]['distance']; //司机距离上车点距离
+            $from1 = $OrderTown['start_latitude'] . ',' . $OrderTown['start_longitude'];
+            $to1 = $OrderTown['end_latitude'] . ',' . $OrderTown['end_longitude'];
+            $distanceInfo1 = file_get_contents("http://apis.map.qq.com/ws/distance/v1/?mode=driving&from=$from1&to=$to1&key=$key");
+            $distanceInfonow1 = json_decode($distanceInfo1, true);
+            $delivery_distance = $distanceInfonow1['result']['elements'][0]['distance']; //出发点到下车点距离
+            $start_location = empty($OrderTown['start_location'])?'暂无出发地':$OrderTown['start_location'];
+            $end_location = empty($OrderTown['end_location'])?'暂无终点地':$OrderTown['end_location'];
+            $order_type = empty($OrderTown['order_type'])?'666':$OrderTown['order_type'];
+            $appointment_time = empty($OrderTown['appointment_time'])?'666':$OrderTown['appointment_time'];
+        }else{
+            echoOk( 301 , '数据错误！' );
+        }
         $re    = [
-            'head_img'       => $user['head_img'] ,
-            'name'           => $user['name'] ,
-            'start_location' => $order['start_location'] ,
-            'end_location'   => $order['end_location'] ,
-            'order_type'     => '1' ,
+            'head_img'       => $user['head_img'] ,          //头像
+            'name'           => $user['name'] ,              //姓名
+            'start_location' => $start_location ,            //取货地址
+            'end_location'   => $end_location ,              //送达地址
+            'order_type'     => $order_type ,                //订单类型  订单类型 1专车送 2顺丰送 3代买 4代驾
+            'pickup_distance'     => $pickup_distance ,      //司机距离取货点距离  /  司机距离上车点距离
+            'delivery_distance'     => $delivery_distance ,  //司机取货点至送达地点距离  /  上车点到下车点距离
+            'appointment_time'     => $appointment_time ,    //预约时间
         ];
 
         echoOk( 200 , '获取成功' , $re );
@@ -204,7 +249,7 @@ class DriverPickController extends CommonController
     public function handle_popup()
     {
         $data = self::$_DATA;
-        if (empty( $data['id'] ) || empty( $data['waiting_id'] ) || empty( $data['handle'] )) {
+        if (empty( $data['id'] ) || empty( $data['waiting_id'] ) || empty( $data['handle'] ) || empty( $data['taker_type_id'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
         $driverInfo = $this->UserModel->get_info( $data['id'] );
@@ -217,8 +262,13 @@ class DriverPickController extends CommonController
         switch ($data['handle']) {
             case 1: // 接单
                 sleep( 0.5 );
-                $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
-                $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+                if ($data['taker_type_id'] == 1){
+                    $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+                    $orderInfotown = array();
+                }else{
+                    $orderInfo = array();
+                    $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+                }
                 if (!empty($orderInfo)){
                     if (!empty( $orderInfo['driver_id'] )) {
                         echoOk( 301 , '已经接单' );
@@ -338,28 +388,27 @@ class DriverPickController extends CommonController
     }
 
     /**
-         * 获取订单信息_跑腿订单
+     * 获取订单信息
      */
     public function town_get_order()
     {
         $data = self::$_DATA;
-
-        if (empty( $data['order_id'] )) {
+        if (empty( $data['order_id'] ) || empty( $data['taker_type_id'] )) {
             echoOk( 301 , '必填项不能为空' , [] );
         }
-
-        $order = $this->OrderTrafficModel->get_info( $data['order_id'] );
+        if ($data['taker_type_id'] == 1){
+            $order = $this->OrderTrafficModel->get_info( $data['order_id'] );
+        }else{
+            $order = $this->OrderTownModel->get_info( $data['order_id'] );
+        }
         if (!$order) {
             echoOk( 301 , '没有数据' , [] );
         }
-
         $user_working = $this->UserWorkingModel->get_working( $order['driver_id'] );
         if (!$user_working) {
             echoOk( 301 , '没有数据' , [] );
         }
-
         $user = $this->UserModel->get_info( $order['user_id'] );
-
         $re = [
             'status'          => $order['status'] ,
             'order_small_id'  => $order['id'] ,
@@ -375,8 +424,8 @@ class DriverPickController extends CommonController
             'longitude'       => $user['longitude'] ,
             'latitude'        => $user['latitude'] ,
             'order_status'    => $order['order_status'] ,
+            'order_type'    => $order['order_type'] ,
         ];
-
         echoOk( 200 , '获取成功' , $re );
     }
 

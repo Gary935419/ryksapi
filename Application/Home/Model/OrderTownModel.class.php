@@ -84,7 +84,7 @@ class OrderTownModel extends Model
             $title   = '如邮快送';
             $content = '您有一个新的订单';
             $extras  = [
-                'taker_type_id' => '2' , // 市区出行(1)
+                'taker_type_id' => '2' , // 代驾
                 'waiting_id'    => $waiting_id
             ];
             $JModel  = new \Home\Model\JpushModel();
@@ -118,7 +118,7 @@ class OrderTownModel extends Model
             $title   = '如邮快送';
             $content = '您有一个新的订单';
             $extras  = [
-                'taker_type_id' => '2' , // 市区出行(1)
+                'taker_type_id' => '1' , // 专车 顺风 代买
                 'waiting_id'    => $waiting_id
             ];
             $JModel  = new \Home\Model\JpushModel();
@@ -275,7 +275,18 @@ class OrderTownModel extends Model
             return '0';
         }
     }
-
+    /**
+     * 获得进行中的代驾 订单
+     * @param $driver_id
+     * @return mixed
+     */
+    public function work_get_order_ing($driver_id)
+    {
+        $where = 'driver_id = ' . $driver_id;
+        $where .= ' AND ( status = 2 OR status = 3 OR status = 4 OR status = 5 )';
+        $lists = $this->where($where)->select();
+        return $lists;
+    }
     /**
      * 乘客上车
      * @param $id
@@ -538,7 +549,6 @@ class OrderTownModel extends Model
                 $re[$k]['end_location']   = $v['end_location'];
                 $re[$k]['price']          = $v['price'];
                 $re[$k]['order_status']   = $v['order_status'];
-
             }
         }
         return $re;
@@ -578,5 +588,14 @@ class OrderTownModel extends Model
     {
         $where['id'] = array ( 'eq' , $id );
         $this->where( $where )->save( array ( 'evaluate' => $content ) );
+    }
+    /**
+     * @param $where
+     * @return array|bool|mixed|string|null
+     *
+     */
+    public function getWhereInfo($where)
+    {
+        return $this->where($where)->find();
     }
 }

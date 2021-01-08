@@ -153,7 +153,18 @@ class OrderTrafficModel extends Model
             return '0';
         }
     }
-
+    /**
+     * 获得进行中的专车 顺风 代买 订单
+     * @param $driver_id
+     * @return mixed
+     */
+    public function work_get_order_ing($driver_id)
+    {
+        $where = 'driver_id = ' . $driver_id;
+        $where .= ' AND ( order_status = 3 OR order_status = 4 OR order_status = 5 OR order_status = 6 OR order_status = 7  )';
+        $lists = $this->where($where)->select();
+        return $lists;
+    }
     /**
      * 获取订单详情
      * @param $order_id
@@ -314,9 +325,13 @@ class OrderTrafficModel extends Model
      * @param $con
      * @return mixed
      */
-    public function get_order_lists($con)
+    public function get_order_lists($con,$type)
     {
-        $where = 'driver_id = ' . $con['id'];
+        if ($type == 1){
+            $where = 'order_type = 1 and order_type = 2 and driver_id = ' . $con['id'];
+        }else{
+            $where = 'order_type = 3 and driver_id = ' . $con['id'];
+        }
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;
