@@ -627,7 +627,7 @@ class DriverPickController extends CommonController
     public function pickUp()
     {
         $data = self::$_DATA;
-        $imgInfo                   = uploadImg( '' );
+        $imgInfo = uploadImg( '' );
 
         if (empty( $data['order_id'] )) {
             echoOk( 301 , '字段不能为空' );

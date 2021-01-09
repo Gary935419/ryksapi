@@ -97,7 +97,7 @@ class OrderTrafficModel extends Model
     {
         $where['id'] = array('eq', $id);
         $order = $this->get_info($id);
-        $this->where($where)->save(array('status' => '6','order_status'=>8)); // 已完成(6)
+        $this->where($where)->save(array('status' => '6','order_status'=>'8')); // 已完成(6)
 
         // 上班状态
         $user_working = new \Home\Model\UserWorkingModel();
@@ -351,6 +351,44 @@ class OrderTrafficModel extends Model
                 $re[$k]['start_location'] = $v['start_location'];
                 $re[$k]['end_location'] = $v['end_location'];
                 $re[$k]['price'] = $v['price'];
+            }
+        }
+        return $re;
+    }
+    /**
+     * 获取订单列表 订单池
+     * @param $con
+     * @return mixed
+     */
+    public function get_order_lists1($con)
+    {
+        $where = 'status = 1 and order_status = 2';
+        $page = $con['page'] ? $con['page'] : 1;
+        $limit = $con['limit'] ? $con['limit'] : 10;
+        $limit1 = ($page - 1) * $limit . "," . $limit;
+        $order = 'id DESC';
+        $lists = $this->where($where)->limit($limit1)->order($order)->select();
+        $re = [];
+        if ($lists) {
+            foreach ($lists as $k => $v) {
+                $UserModel = new \Home\Model\UserModel();
+                $user = $UserModel->get_info($v['user_id']);
+                $re[$k]['order_small_id'] = $v['id'];
+                $re[$k]['head_img'] = $user['head_img'];
+                $re[$k]['name'] = $user['name'];
+                $re[$k]['account'] = $user['account'];
+                $re[$k]['times'] = date('Y-m-d H:i:s', $v['add_time']);
+                $re[$k]['status'] = $v['status'];
+                $re[$k]['start_location'] = $v['start_location'];
+                $re[$k]['end_location'] = $v['end_location'];
+                $re[$k]['price'] = $v['price'];
+                $re[$k]['order_type'] = $v['order_type'];
+                $re[$k]['order_status'] = $v['order_status'];
+                $re[$k]['status'] = $v['status'];
+                $re[$k]['number'] = $v['number'];
+                $re[$k]['tip_price'] = $v['tip_price'];
+                $re[$k]['protect_price'] = $v['protect_price'];
+                $re[$k]['distribution_km'] = $v['distribution_km'];
             }
         }
         return $re;
