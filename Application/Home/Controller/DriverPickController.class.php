@@ -256,8 +256,14 @@ class DriverPickController extends CommonController
         if (empty($driverInfo)){
             echoOk( 301 , '数据错误' );
         }
-        if ($driverInfo['credit_points'] < 60){
-            echoOk( 301 , '信誉分低于60分、不可接单，请您联系客服处理分数问题！' );
+        if ($driverInfo['credit_num'] == 9){
+            $credit_pointsnew = floatval($driverInfo['credit_points']) + 5;
+           if ($credit_pointsnew > 100){
+               $credit_pointsnew = 100;
+           }
+        }
+        if ($driverInfo['credit_points'] < 20){
+            echoOk( 301 , '信誉分低于20分、不可接单，请您联系客服处理分数问题！' );
         }
         switch ($data['handle']) {
             case 1: // 接单
@@ -289,13 +295,15 @@ class DriverPickController extends CommonController
                         'status'      => '3' , // 状态:行程中(3)
                     ];
                     $this->UserWorkingModel->set_working( $data['id'] , $working_save );
-                    $this->OrderTrafficModel->commit();
-                    //发送取货码
-                    if ($driverInfo) {
-                        $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['waiting_id'] ] )->find();
-                        $text            = '您所接订单的取货码为:' . $orderExtendInfo['pick_up_code'];
-                        $this->send_code( $driverInfo['account'] , $text );
+                    if ($driverInfo['credit_points'] < 100){
+                        //更新信誉分
+                        $credit_numnew = floatval($driverInfo['credit_num']) + 1;
+                        if ($driverInfo['credit_num'] == 9){
+                            $credit_numnew = 0;
+                        }
+                        $this->UserModel->save_info( $data['id'] , array ( 'credit_points' => $credit_pointsnew,'credit_num' => $credit_numnew ) );
                     }
+                    $this->OrderTrafficModel->commit();
                 }elseif (!empty($orderInfotown)){
                     if (!empty( $orderInfotown['driver_id'] )) {
                         echoOk( 301 , '已经接单' );
@@ -316,6 +324,14 @@ class DriverPickController extends CommonController
                         'status'      => '3' , // 状态:行程中(3)
                     ];
                     $this->UserWorkingModel->set_working( $data['id'] , $working_save );
+                    if ($driverInfo['credit_points'] < 100){
+                        //更新信誉分
+                        $credit_numnew = floatval($driverInfo['credit_num']) + 1;
+                        if ($driverInfo['credit_num'] == 9){
+                            $credit_numnew = 0;
+                        }
+                        $this->UserModel->save_info( $data['id'] , array ( 'credit_points' => $credit_pointsnew,'credit_num' => $credit_numnew ) );
+                    }
                     $this->OrderTownModel->commit();
                 }else{
                     echoOk( 301 , '数据错误' );
@@ -444,7 +460,7 @@ class DriverPickController extends CommonController
             case 1:
                 //专车送  顺风送  代买
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
-                if ($orderInfo['order_status'] != 9) {
+                if ($orderInfo['order_status'] != 8) {
                     $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
                     echoOk( 200 , '操作成功' ,$result);
                 } else {
@@ -454,7 +470,7 @@ class DriverPickController extends CommonController
             case 2:
                 //代驾订单取消
                 $orderInfo = $this->OrderTownModel->where( [ 'id' => $data['order_small_id'] ] )->find();
-                if ($orderInfo['status'] != 7) {
+                if ($orderInfo['status'] != 7 && $orderInfo['status'] != 6) {
                     $result = $this->OrderTownModel->cancel_order_driver($data['order_small_id']);
                     echoOk( 200 , '操作成功' ,$result);
                 } else {
@@ -469,7 +485,7 @@ class DriverPickController extends CommonController
     }
 
     /**
-     * 乘客上车
+     * 乘客上车 (暂时不用)
      */
     public function aboard()
     {
@@ -511,15 +527,13 @@ class DriverPickController extends CommonController
             case 2: // 市区出行
                 $this->OrderTrafficModel->start_trip( $data['order_id'] ); // 开始行程
                 break;
-            case 3: // 同城货运
-                break;
         }
 
         echoOk( 200 , '操作成功' );
     }
 
     /**
-     * 完成小单
+     * 完成小单 （暂时不用）
      */
     public function small_ok()
     {
@@ -548,7 +562,7 @@ class DriverPickController extends CommonController
     }
 
     /**
-     * 完成大单
+     * 完成大单 （暂时不用）
      */
     public function order_ok()
     {
@@ -630,9 +644,12 @@ class DriverPickController extends CommonController
         $imgInfo = uploadImg( '' );
 
         if (empty( $data['order_id'] )) {
-            echoOk( 301 , '字段不能为空' );
+            echoOk( 301 , '必填字段不能为空' );
         }
-
+        $OrderTraffic = $this->OrderTrafficModel->get_info( $data['order_id'] );
+        if (empty($OrderTraffic)){
+            echoOk( 301 , '数据错误' );
+        }
         if (empty( $imgInfo['goods_image'] )) {
             echoOk( 301 , '图片上传失败' );
         } else {
@@ -643,8 +660,15 @@ class DriverPickController extends CommonController
         $orderData['order_status'] = 7;//7前往目的地
         $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->save( $orderData );
 
+        $driverInfo = $this->UserModel->get_info( $OrderTraffic['driver_id'] );
+        if (empty($driverInfo)){
+            echoOk( 301 , '数据错误' );
+        }
+        //发送取货码
+        $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['order_id'] ] )->find();
+        $text            = '您的物品由'.$driverInfo['name'].'师傅为您配送，车牌号码：'.$driverInfo['car_number'].',电话:'.$driverInfo['account'].',收件码：'.$orderExtendInfo['pick_up_code'].',请及时沟通，下楼到方便停车地点取货。如需送货上楼请您线下支付小费，客服电话：4000000739。';
+        $this->send_code( $OrderTraffic['tel'] , $text );
         echoOk( 200 , '提交成功' );
-
     }
 
     /**

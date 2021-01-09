@@ -26,7 +26,12 @@ class OrderTrafficModel extends Model
             if ($getorder_time_now >= $now_time){
                 $money_new = floatval($order_price) + floatval($userinfo['money']);
             }else{
-                $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+                $pricenow = floatval($order_price) + floatval($userinfo['money']);
+                if ($pricenow < 5){
+                    $money_new = 0;
+                }else{
+                    $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+                }
             }
         }
         $this->where( $where )->save( array ( 'status' => '7','order_status' => '9' ) ); // 已取消(7)
@@ -64,7 +69,11 @@ class OrderTrafficModel extends Model
         $credit_points_old = $userinfo['credit_points'];
         $credit_points_now = 0;
         if ($getorder_time_now < $now_time){
-            $credit_points_now = floatval($credit_points_old) - 5;
+            if ($credit_points_old < 5){
+                $credit_points_now = 0;
+            }else{
+                $credit_points_now = floatval($credit_points_old) - 5;
+            }
             $UserModel->save_info( $order['user_id'] , array ( 'credit_points' => $credit_points_now ) );
         }
         $result = array();
