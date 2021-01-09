@@ -314,7 +314,7 @@ class OrderTownModel extends Model
     {
         $where['id'] = array ( 'eq' , $id );
         $order       = $this->get_info( $id );
-        $this->where( $where )->save( array ( 'status' => '4' ) ); // 开始行程
+        $this->where( $where )->save( array ( 'status' => '4' , 'order_status' => '4') ); // 开始行程
 
         // ----- 司机上班 -----
         $user_working_model = new \Home\Model\UserWorkingModel();

@@ -521,11 +521,11 @@ class DriverPickController extends CommonController
         }
 
         switch ($data['taker_type_id']) {
-            case 1: // 城际拼车
-                $this->OrderIntercityModel->start_trip( $data['order_id'] ); // 开始行程
-                break;
-            case 2: // 市区出行
+            case 1: // 跑腿
                 $this->OrderTrafficModel->start_trip( $data['order_id'] ); // 开始行程
+                break;
+            case 2: // 代驾
+                $this->OrderTownModel->start_trip( $data['order_id'] ); // 开始行程
                 break;
         }
 
@@ -658,6 +658,7 @@ class DriverPickController extends CommonController
         }
 
         $orderData['order_status'] = 7;//7前往目的地
+        $orderData['takegoods_time'] = time();//
         $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->save( $orderData );
 
         $driverInfo = $this->UserModel->get_info( $OrderTraffic['driver_id'] );
@@ -720,11 +721,11 @@ class DriverPickController extends CommonController
         if ($orderExtendInfo) {
 
             $orderData['order_status'] = 8;//7前往目的地
+            $orderData['complete_time'] = time();//
             $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->save( $orderData );
 
             $extendData['pick_up_time'] = time();
             $this->OrderExtendModel->where( [ 'order_id' => $data['order_id'] ] )->save( $extendData );
-
 
             $orderInfo = $this->OrderTrafficModel->getWhereInfo( [ 'id' => $data['order_id'] ] );
 

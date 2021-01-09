@@ -5,6 +5,7 @@ namespace Home\Controller;
 use Think\Controller;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
+use Home\Model\OrderModel;
 use Home\Model\OrderTrafficModel;
 
 /**
@@ -12,6 +13,7 @@ use Home\Model\OrderTrafficModel;
  * @package Home\Controller
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTownModel $OrderTownModel
+ * @property OrderModel $OrderModel
  * @property OrderTrafficModel $OrderTrafficModel
  */
 class DriverOrderController extends CommonController
@@ -19,6 +21,7 @@ class DriverOrderController extends CommonController
 
     private $OrderIntercityModel;
     private $OrderTownModel;
+    private $OrderModel;
     private $OrderTrafficModel;
 
     public function _initialize()
@@ -26,6 +29,7 @@ class DriverOrderController extends CommonController
         parent::_initialize();
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel = new OrderTownModel();
+        $this->OrderModel = new OrderModel();
         $this->OrderTrafficModel = new OrderTrafficModel();
     }
 
@@ -70,7 +74,7 @@ class DriverOrderController extends CommonController
             echoOk(301, '必填项不能为空', []);
         }
         $order = $this->OrderTownModel->get_info($data['order_small_id']);
-        if ($order['status'] == '2' && $order['order_status'] == '3') {
+        if ($order['status'] == '4' && $order['order_status'] == '4') {
             $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '3','order_status' => '7','takeup_time' => time()));
             echoOk(200, '操作成功');
         } else {
@@ -90,6 +94,7 @@ class DriverOrderController extends CommonController
         $order = $this->OrderTownModel->get_info($data['order_small_id']);
         if ($order['order_status'] == '7') {
             $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '6','order_status' => '8','complete_time' => time()));
+            $this->OrderModel->order_ok( $order['big_order_id'] , $order['driver_id'] ); // 完成大单
             echoOk(200, '操作成功');
         } else {
             echoOk(301, '该订单状态不符合乘客完成条件');
