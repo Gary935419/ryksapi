@@ -161,12 +161,8 @@ class OrderTownModel extends Model
         $getorder_time_now = floatval($getorder_time) + 300;
         // ----- 根据状态来取消订单 ----- //
         if ($order['status'] == 1) { // 待接单(1)
-            $waiting = $OrderWaitingModel->get_user_info( $order['user_id'] );
-            $OrderWaitingModel->user_del_order( $order['user_id'] ); // 删除等待订单
-            $UserWorkingModel->set_working( $waiting['driver_id'] , array ( 'status_send' => '0' ) ); // 还原该司机上班推送状态
             $money_new = floatval($order_price) + floatval($userinfo['money']);
         } else {
-            $UserWorkingModel->set_working( $order['driver_id'] , array ( 'status' => '1' ) ); // 空闲(1)
             if ($getorder_time_now >= $now_time){
                 $money_new = floatval($order_price) + floatval($userinfo['money']);
             }else{
@@ -178,6 +174,7 @@ class OrderTownModel extends Model
                 }
             }
         }
+        $UserWorkingModel->set_working( $order['driver_id'] , array ( 'status' => '1','status_send' => '0' ) ); // 空闲(1)
         $this->where( $where )->save( array ( 'status' => '7' ) ); // 已取消(7)
         $UserModel->save_info( $order['user_id'] , array ( 'money' => $money_new ) );
     }
@@ -596,6 +593,52 @@ class OrderTownModel extends Model
                 $re[$k]['number'] = $v['number'];
                 $re[$k]['tip_price'] = $v['tip_price'];
                 $re[$k]['distribution_km'] = $v['distribution_km'];
+                $re[$k]['start_longitude'] = $v['start_longitude'];
+                $re[$k]['start_latitude'] = $v['start_latitude'];
+                $re[$k]['end_longitude'] = $v['end_longitude'];
+                $re[$k]['end_latitude'] = $v['end_latitude'];
+            }
+        }
+        return $re;
+    }
+    /**
+     * 获取订单列表  ing
+     * @param $con
+     * @return mixed
+     */
+    public function get_order_lists_ing( $con )
+    {
+        $where = 'driver_id = '.$con['driver_id'].'and status = 2 or status = 3 or status = 4';
+        $page   = $con['page'] ? $con['page'] : 1;
+        $limit  = $con['limit'] ? $con['limit'] : 10;
+        $limit1 = ($page - 1) * $limit . "," . $limit;
+        $order  = 'id DESC';
+        $lists  = $this->where( $where )->limit( $limit1 )->order( $order )->select();
+        $re     = [];
+        if ($lists) {
+            foreach ($lists as $k => $v) {
+                $UserModel                = new \Home\Model\UserModel();
+                $user                     = $UserModel->get_info( $v['user_id'] );
+                $re[$k]['order_small_id'] = $v['id'];
+                $re[$k]['head_img']       = $user['head_img'];
+                $re[$k]['name']           = $user['name'];
+                $re[$k]['account']        = $user['account'];
+                $re[$k]['times']          = date( 'Y-m-d H:i:s' , $v['add_time'] );
+                $re[$k]['status']         = $v['status'];
+                $re[$k]['start_location'] = $v['start_location'];
+                $re[$k]['end_location']   = $v['end_location'];
+                $re[$k]['price']          = $v['price'];
+                $re[$k]['order_status']   = $v['order_status'];
+                $re[$k]['order_type'] = $v['order_type'];
+                $re[$k]['order_status'] = $v['order_status'];
+                $re[$k]['status'] = $v['status'];
+                $re[$k]['number'] = $v['number'];
+                $re[$k]['tip_price'] = $v['tip_price'];
+                $re[$k]['distribution_km'] = $v['distribution_km'];
+                $re[$k]['start_longitude'] = $v['start_longitude'];
+                $re[$k]['start_latitude'] = $v['start_latitude'];
+                $re[$k]['end_longitude'] = $v['end_longitude'];
+                $re[$k]['end_latitude'] = $v['end_latitude'];
             }
         }
         return $re;

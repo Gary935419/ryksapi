@@ -9,6 +9,7 @@ use Home\Model\UserModel;
 use Home\Model\UserWorkingModel;
 use Home\Model\RouteCityModel;
 use Home\Model\CarTypeModel;
+use Home\Model\UserRecommendedModel;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
 use Home\Model\OrderWaitingModel;
@@ -27,6 +28,7 @@ use Home\Model\CouponModel;
  * @property OrderTownModel $OrderTownModel
  * @property OrderWaitingModel $OrderWaitingModel
  * @property OrderModel $OrderModel
+ * @property UserRecommendedModel $UserRecommendedModel
  * @property CouponModel $CouponModel
  * @property OrderExtendModel $OrderExtendModel
  */
@@ -44,6 +46,7 @@ class DriverPickController extends CommonController
     private $CouponModel;
     private $OrderTrafficModel;
     private $OrderExtendModel;
+    private $UserRecommendedModel;
 
     public function _initialize()
     {
@@ -59,6 +62,7 @@ class DriverPickController extends CommonController
         $this->CouponModel         = new CouponModel();
         $this->OrderTrafficModel   = new OrderTrafficModel();
         $this->OrderExtendModel    = new OrderExtendModel();
+        $this->UserRecommendedModel    = new UserRecommendedModel();
     }
 
     /**
@@ -185,14 +189,16 @@ class DriverPickController extends CommonController
         }
 
         // 获取显示信息
-        $user  = $this->UserModel->get_info( $data['id'] );
         if ($data['taker_type_id'] == 1){
             $OrderTraffic = $this->OrderTrafficModel->get_info( $data['waiting_id'] );
             $OrderTown = array();
+            $user  = $this->UserModel->get_info( $OrderTraffic['user_id'] );
         }else{
             $OrderTraffic = array();
             $OrderTown = $this->OrderTownModel->get_info( $data['waiting_id'] );
+            $user  = $this->UserModel->get_info( $OrderTown['user_id'] );
         }
+
         //腾讯lbskey
         $key = 'JF5BZ-ZPE33-ILI3C-YIMB2-4EOB2-7XBJ3';
         if(!empty($OrderTraffic)){
@@ -256,12 +262,6 @@ class DriverPickController extends CommonController
         if (empty($driverInfo)){
             echoOk( 301 , '数据错误' );
         }
-        if ($driverInfo['credit_num'] == 9){
-            $credit_pointsnew = floatval($driverInfo['credit_points']) + 5;
-           if ($credit_pointsnew > 100){
-               $credit_pointsnew = 100;
-           }
-        }
         if ($driverInfo['credit_points'] < 20){
             echoOk( 301 , '信誉分低于20分、不可接单，请您联系客服处理分数问题！' );
         }
@@ -295,14 +295,6 @@ class DriverPickController extends CommonController
                         'status'      => '3' , // 状态:行程中(3)
                     ];
                     $this->UserWorkingModel->set_working( $data['id'] , $working_save );
-                    if ($driverInfo['credit_points'] < 100){
-                        //更新信誉分
-                        $credit_numnew = floatval($driverInfo['credit_num']) + 1;
-                        if ($driverInfo['credit_num'] == 9){
-                            $credit_numnew = 0;
-                        }
-                        $this->UserModel->save_info( $data['id'] , array ( 'credit_points' => $credit_pointsnew,'credit_num' => $credit_numnew ) );
-                    }
                     $this->OrderTrafficModel->commit();
                 }elseif (!empty($orderInfotown)){
                     if (!empty( $orderInfotown['driver_id'] )) {
@@ -324,14 +316,6 @@ class DriverPickController extends CommonController
                         'status'      => '3' , // 状态:行程中(3)
                     ];
                     $this->UserWorkingModel->set_working( $data['id'] , $working_save );
-                    if ($driverInfo['credit_points'] < 100){
-                        //更新信誉分
-                        $credit_numnew = floatval($driverInfo['credit_num']) + 1;
-                        if ($driverInfo['credit_num'] == 9){
-                            $credit_numnew = 0;
-                        }
-                        $this->UserModel->save_info( $data['id'] , array ( 'credit_points' => $credit_pointsnew,'credit_num' => $credit_numnew ) );
-                    }
                     $this->OrderTownModel->commit();
                 }else{
                     echoOk( 301 , '数据错误' );
@@ -731,6 +715,42 @@ class DriverPickController extends CommonController
 
             $this->OrderModel->order_ok( $orderExtendInfo['big_order_id'] , $orderInfo['driver_id'] ); // 完成大单
 
+            $driverInfo = $this->UserModel->get_info( $orderInfo['driver_id'] );
+            if (empty($driverInfo)){
+                echoOk( 301 , '数据错误' );
+            }
+            //信誉分处理
+            if ($driverInfo['credit_num'] == 9){
+                $credit_pointsnew = floatval($driverInfo['credit_points']) + 5;
+                if ($credit_pointsnew > 100){
+                    $credit_pointsnew = 100;
+                }
+            }
+            if ($driverInfo['credit_points'] < 100){
+                //更新信誉分
+                $credit_numnew = floatval($driverInfo['credit_num']) + 1;
+                if ($driverInfo['credit_num'] == 9){
+                    $credit_numnew = 0;
+                }
+                $this->UserModel->save_info( $orderInfo['driver_id'] , array ( 'credit_points' => $credit_pointsnew,'credit_num' => $credit_numnew ) );
+            }
+            //是否有推荐人处理
+            if (!empty($driverInfo['invitation_code2_up']) && empty($driverInfo['is_invitation'])){
+                $invitation_code2_up = $driverInfo['invitation_code2_up'];
+                $where['invitation_code2'] = $invitation_code2_up;
+                $user_info_up = $this->UserModel->getWhereInfo($where);
+                $moneynew = floatval($user_info_up['money']) + 20;
+                $this->UserModel->save_info($user_info_up['id'],array('money' => $moneynew));
+                $this->UserModel->save_info($orderInfo['driver_id'],array('is_invitation' => 1));
+                $insert = [
+                    'user_id' => $user_info_up['id'],
+                    'user_id_up' => $orderInfo['driver_id'],
+                    'price' => 20,
+                    'add_time' => time(),
+                ];
+                //推荐记录插入
+                $this->UserRecommendedModel->recommended_insert($insert);
+            }
             echoOk( 200 , '提交成功' );
 //            echoOk( 301 , json_encode($data));
         } else {

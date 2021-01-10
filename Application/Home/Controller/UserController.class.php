@@ -60,33 +60,33 @@ class UserController extends CommonController
     public function login()
     {
         $data = self::$_DATA;
-
         if (empty( $data['type'] ) || empty( $data['account'] ) || empty( $data['code'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
-
-        if ($data['account'] != '13388889999') {
-            $this->VerifyCodeModel->is_code( $data['account'] , $data['code'] ); // 判断验证码
+        $this->VerifyCodeModel->is_code( $data['account'] , $data['code'] ); // 判断验证码
+        $user_id_flg = $this->UserModel->is_account_flg( $data['type'] , $data['account'] );
+        if ($user_id_flg) {
+            echoOk( 301 , '该账号已经锁定,目前无法登录！' );
         }
-
-        if ($data['loginCode']) {
-            $wxUserInfo = $this->get_user_open_id( $data['loginCode'] );
-
-            if ($wxUserInfo) {
-                $openId = $wxUserInfo['openid'];
-            }
-        }
-
-        $user_id = $this->UserModel->is_account( $data['type'] , $data['account'] , $openId ); // 登录
-        if ($user_id) {
-            echoOk( 200 , '登录成功' , $user_id );
-        }
-
         if ($data['type'] == 1) { // 用户端
+            if ($data['loginCode']) {
+                $wxUserInfo = $this->get_user_open_id( $data['loginCode'] );
+                if ($wxUserInfo) {
+                    $openId = $wxUserInfo['openid'];
+                }
+            }
+            $user_id = $this->UserModel->is_account( $data['type'] , $data['account'] , $openId ); // 登录
+            if ($user_id) {
+                echoOk( 200 , '登录成功' , $user_id );
+            }
             $user_id = $this->UserModel->user_register( '1' , $data['account'] , $openId ); // 注册
             echoOk( 200 , '登录成功' , $user_id );
         } elseif ($data['type'] == 2) { // 司机端
-            $user_id = $this->UserModel->user_register( '2' , $data['account'] , $openId ); // 注册
+            $user_id = $this->UserModel->is_account( $data['type'] , $data['account'] ); // 登录
+            if ($user_id) {
+                echoOk( 200 , '登录成功' , $user_id );
+            }
+            $user_id = $this->UserModel->user_register( '2' , $data['account'] ,''); // 注册
             echoOk( 200 , '登录成功' , $user_id );
         }
     }
@@ -238,6 +238,9 @@ class UserController extends CommonController
             $save_data['name'] = $data['name'];
         }
 
+        if ($data['invitation_code']) {
+            $save_data['invitation_code2_up'] = $data['invitation_code'];
+        }
         $temp = $this->UserModel->save_info( $data['id'] , $save_data );
 
         if ($temp) {

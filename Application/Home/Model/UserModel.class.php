@@ -37,16 +37,28 @@ class UserModel extends Model
         for ($i = 0, $str = '', $lc = strlen($chars)-1; $i < 6; $i++) {
             $str .= $chars[mt_rand(0, $lc)];
         }
-        $invitation_code1 = $str;
-        $add = [
-            'type' => $type,
-            'account' => $account,
-            'name' => $type == 1 ? '乘客' . substr($account, 7) : '',
-            'head_img' => 'Public/photo_default.png',
-            'add_time' => time(),
-            'open_id' => $openId,
-            'invitation_code1' => $invitation_code1,
-        ];
+        if ($type == 1){
+            $invitation_code1 = $str;
+            $add = [
+                'type' => $type,
+                'account' => $account,
+                'name' => $type == 1 ? '乘客' . substr($account, 7) : '',
+                'head_img' => 'Public/photo_default.png',
+                'add_time' => time(),
+                'open_id' => $openId,
+                'invitation_code1' => $invitation_code1,
+            ];
+        }else{
+            $invitation_code2 = $str;
+            $add = [
+                'type' => $type,
+                'account' => $account,
+                'head_img' => 'Public/photo_default.png',
+                'add_time' => time(),
+                'invitation_code2' => $invitation_code2,
+            ];
+        }
+
         $re = $this->add($add);
 
         // 用户端注册送优惠券
@@ -90,14 +102,31 @@ class UserModel extends Model
 
         if ($user_id) {
             if ($openId) {
-               $rs = $this->where(['id' => $user_id])->save(['open_id' => $openId] );
+               $this->where(['id' => $user_id])->save(['open_id' => $openId] );
             }
             return $user_id;
         } else {
             return false;
         }
     }
-
+    /**
+     * 判断账号是否可用
+     * @param $type 1用户端 2司机端
+     * @param $account 手机
+     * @return bool
+     */
+    public function is_account_flg($type, $account)
+    {
+        $where['type'] = array('eq', $type);
+        $where['account'] = array('eq', $account);
+        $where['is_logoff'] = array('eq', 1);
+        $user_id = $this->where($where)->getField('id');
+        if ($user_id) {
+            return $user_id;
+        } else {
+            return false;
+        }
+    }
     /**
      * 获取用户信息
      * @param $id
