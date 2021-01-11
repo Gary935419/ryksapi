@@ -188,7 +188,7 @@ class OrderTownModel extends Model
         $UserModel  = new \Home\Model\UserModel();
         $where['id'] = array ( 'eq' , $id );
         $order       = $this->get_info( $id );
-        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $userinfo = $UserModel->get_info( $order['driver_id'] );
         $getorder_time = $order['getorder_time'];
         $now_time = time();
         $getorder_time_now = floatval($getorder_time) + 300;
@@ -203,7 +203,7 @@ class OrderTownModel extends Model
             }else{
                 $credit_points_now = floatval($credit_points_old) - 5;
             }
-            $UserModel->save_info( $order['user_id'] , array ( 'credit_points' => $credit_points_now ) );
+            $UserModel->save_info( $order['driver_id'] , array ( 'credit_points' => $credit_points_now ) );
         }
         $this->where( $where )->save( array ( 'getorder_time' => '','driver_id' => '','status' => '1','order_status' => '2' ) );
         $result = array();

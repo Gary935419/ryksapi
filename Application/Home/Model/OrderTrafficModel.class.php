@@ -62,7 +62,7 @@ class OrderTrafficModel extends Model
         $UserModel  = new \Home\Model\UserModel();
         $where['id'] = $id;
         $order = $this->get_info($id);
-        $userinfo = $UserModel->get_info( $order['user_id'] );
+        $userinfo = $UserModel->get_info( $order['driver_id'] );
         $getorder_time = $order['getorder_time'];
         $now_time = time();
         $getorder_time_now = floatval($getorder_time) + 300;
@@ -74,7 +74,7 @@ class OrderTrafficModel extends Model
             }else{
                 $credit_points_now = floatval($credit_points_old) - 5;
             }
-            $UserModel->save_info( $order['user_id'] , array ( 'credit_points' => $credit_points_now ) );
+            $UserModel->save_info( $order['driver_id'] , array ( 'credit_points' => $credit_points_now ) );
         }
         $result = array();
         $result['credit_points_old'] = $credit_points_old;
