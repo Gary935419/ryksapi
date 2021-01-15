@@ -161,7 +161,7 @@ class UserController extends CommonController
                 'attribute'      => $data['attribute'] ,
                 'group_photo'    => $url['group_photo'] ,
                 'head_img'       => $url['img_worker'] ,
-                'check'          => $check , //跑腿认证
+                'user_check'          => $check , //跑腿认证
             ];
         } else {
 
@@ -334,7 +334,7 @@ class UserController extends CommonController
 
         //跑腿认证
         if ($data['type'] == 1) {
-            $where['check'] = 1;
+            $where['user_check'] = 1;
 
         } elseif ($data['type'] == 2) {
             $where['driving_check'] = 1;

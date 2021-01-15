@@ -608,7 +608,7 @@ class OrderTownModel extends Model
      */
     public function get_order_lists_ing( $con )
     {
-        $where = 'driver_id = '.$con['driver_id'].'and status = 2 or status = 3 or status = 4';
+        $where = 'driver_id = '.$con['driver_id'].' and status = 2 or status = 3 or status = 4';
         $page   = $con['page'] ? $con['page'] : 1;
         $limit  = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;

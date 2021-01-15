@@ -189,8 +189,8 @@ class UserCallController extends CommonController
         $orderData['add_time'] = time();
         $orderData['user_id'] = $data['id'];
         $orderData['order_type'] = 4;
-        $orderData['pay_number'] = "PAY" . time() . $data['id'];
-        $orderData['order_number'] = "ORD" . rand(100000000000, 999999999999);
+        $orderData['pay_number'] = "PAY".time().$data['id'];
+        $orderData['order_number'] = "ORD".rand(100000000000,999999999999);
         $order_id = $this->OrderModel->add($orderData);
 
         if ($data['couponId']) {
@@ -198,14 +198,14 @@ class UserCallController extends CommonController
             if (!$couponInfo) {
                 echoOk('301', '优惠券信息错误');
             }
-            if ($couponInfo['end_time'] < time()) {
+            if ($couponInfo['end_time'] < time()){
                 echoOk('301', '优惠券已经过期！');
             }
         } else {
             $couponInfo['price'] = 0;
         }
         //获得预约时间
-        $data_now = strtotime($data['pickerDate'] . " " . $data['pickerTime']);
+        $data_now = strtotime($data['pickerDate']." ".$data['pickerTime']);
         // ----- 添加订单 ----- //
         $add_data = [
             'user_id' => $data['id'],
@@ -219,8 +219,8 @@ class UserCallController extends CommonController
             'price' => $data['price'],
             'coupon_id' => $data['couponId'],
             'preferential_price' => $couponInfo['price'],
-            'number' => "PAY" . time() . $data['id'],
-            'order_number' => "ORD" . rand(100000000000, 999999999999),
+            'number' => "PAY".time().$data['id'],
+            'order_number' => "ORD".rand(100000000000,999999999999),
             'appointment_time' => $data_now,
             'remarks' => $data['remarks'],
             'distribution_km' => $data['distribution_km'],
@@ -237,24 +237,24 @@ class UserCallController extends CommonController
         ];
         $this->OrderTownModel->add_order($add_data);
 
-        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])) {
+        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])){
             //页面展现起点地址
             $user_address_start = $this->UserAddressModel->get_user_address_start($data);
-            if (empty($user_address_start)) {
-                $this->UserAddressModel->user_address_insert($data, 1);
+            if (empty($user_address_start)){
+                $this->UserAddressModel->user_address_insert($data,1);
             }
         }
-        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])) {
+        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])){
             //页面展现结束地址
             $user_address_end = $this->UserAddressModel->get_user_address_end($data);
-            if (empty($user_address_end)) {
-                $this->UserAddressModel->user_address_insert($data, 2);
+            if (empty($user_address_end)){
+                $this->UserAddressModel->user_address_insert($data,2);
             }
         }
 
         //验证是否有邀请人
         $user_info = $this->UserModel->get_user($data['id']);
-        if (!empty($user_info['invitation_code1_up'])) {
+        if (!empty($user_info['invitation_code1_up'])){
             $invitation_code1_up = $user_info['invitation_code1_up'];
             $where['invitation_code1'] = $invitation_code1_up;
             $user_info_up = $this->UserModel->getWhereInfo($where);
@@ -265,14 +265,15 @@ class UserCallController extends CommonController
                 'add_time' => time(),
                 'end_time' => time() + 604800
             ];
-            for ($i = 1; $i <= 5; $i++) {
+            for ($i=1; $i<=5; $i++)
+            {
                 $this->CouponModel->addCoupon($coupon);
             }
         }
         //优惠券状态变更
-        if (!empty($couponInfo['price'])) {
+        if (!empty($couponInfo['price'])){
             $set['is_use'] = 1;
-            $this->CouponModel->saveCoupon($data['couponId'], $set);
+            $this->CouponModel->saveCoupon($data['couponId'],$set);
         }
         // ----- 叫车 ----- //
 //        $this->OrderTownModel->online_send($order_id);
@@ -296,8 +297,8 @@ class UserCallController extends CommonController
         $orderData['add_time'] = time();
         $orderData['user_id'] = $data['id'];
         $orderData['order_type'] = $data['category_type'];
-        $orderData['pay_number'] = "PAY" . time() . $data['id'];
-        $orderData['order_number'] = "ORD" . rand(100000000000, 999999999999);
+        $orderData['pay_number'] = "PAY".time().$data['id'];
+        $orderData['order_number'] = "ORD".rand(100000000000,999999999999);
         $order_id = $this->OrderModel->add($orderData);
 
         if ($data['couponId']) {
@@ -305,14 +306,14 @@ class UserCallController extends CommonController
             if (!$couponInfo) {
                 echoOk('301', '优惠券信息错误');
             }
-            if ($couponInfo['end_time'] < time()) {
+            if ($couponInfo['end_time'] < time()){
                 echoOk('301', '优惠券已经过期！');
             }
         } else {
             $couponInfo['price'] = 0;
         }
         //获得预约时间
-        $data_now = strtotime($data['pickerDate'] . " " . $data['pickerTime']);
+        $data_now = strtotime($data['pickerDate']." ".$data['pickerTime']);
         // ----- 添加订单 ----- //
         $add_data = [
             'user_id' => $data['id'],
@@ -332,7 +333,7 @@ class UserCallController extends CommonController
             'appointment_time' => $data_now,
             'goods_name' => $data['goods_name'],
             'goods_remarks' => $data['goods_remarks'],
-            'distribution_km' => empty($data['distribution_km']) ? 3 : $data['distribution_km'],
+            'distribution_km' => empty($data['distribution_km'])?3:$data['distribution_km'],
             'protect_price' => $data['protect_price'],
             'tip_price' => $data['tip_price'],
             'name' => $data['name'],
@@ -347,7 +348,7 @@ class UserCallController extends CommonController
         $order_traffic_id = $this->OrderTrafficModel->add_order($add_data);
 
         if ($order_traffic_id) {
-            $extendData['pick_up_code'] = rand(1000, 9999);
+            $extendData['pick_up_code'] = rand(1000,9999);
             $extendData['dateline'] = time();
             $extendData['big_order_id'] = $order_id;
             $extendData['order_id'] = $order_traffic_id;
@@ -356,24 +357,24 @@ class UserCallController extends CommonController
 
 //        $this->OrderTownModel->online_send_new($order_id);
 
-        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])) {
+        if (!empty($data['start_latitude']) && !empty($data['start_longitude'])){
             //页面展现起点地址
             $user_address_start = $this->UserAddressModel->get_user_address_start($data);
-            if (empty($user_address_start)) {
-                $this->UserAddressModel->user_address_insert($data, 1);
+            if (empty($user_address_start)){
+                $this->UserAddressModel->user_address_insert($data,1);
             }
         }
-        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])) {
+        if (!empty($data['end_latitude']) && !empty($data['end_longitude'])){
             //页面展现结束地址
             $user_address_end = $this->UserAddressModel->get_user_address_end($data);
-            if (empty($user_address_end)) {
-                $this->UserAddressModel->user_address_insert($data, 2);
+            if (empty($user_address_end)){
+                $this->UserAddressModel->user_address_insert($data,2);
             }
         }
 
         //验证是否有邀请人
         $user_info = $this->UserModel->get_user($data['id']);
-        if (!empty($user_info['invitation_code1_up'])) {
+        if (!empty($user_info['invitation_code1_up'])){
             $invitation_code1_up = $user_info['invitation_code1_up'];
             $where['invitation_code1'] = $invitation_code1_up;
             $user_info_up = $this->UserModel->getWhereInfo($where);
@@ -384,14 +385,15 @@ class UserCallController extends CommonController
                 'add_time' => time(),
                 'end_time' => time() + 604800
             ];
-            for ($i = 1; $i <= 5; $i++) {
+            for ($i=1; $i<=5; $i++)
+            {
                 $this->CouponModel->addCoupon($coupon);
             }
         }
         //优惠券状态变更
-        if (!empty($couponInfo['price'])) {
+        if (!empty($couponInfo['price'])){
             $set['is_use'] = 1;
-            $this->CouponModel->saveCoupon($data['couponId'], $set);
+            $this->CouponModel->saveCoupon($data['couponId'],$set);
         }
         echoOk(200, '下单成功', $order_id);
     }
@@ -620,14 +622,14 @@ class UserCallController extends CommonController
             echoOk(301, '必填项不能为空', []);
         }
 
-        $bigOrderInfo = $this->OrderModel->where('id = ' . $data['order_id'])->find();
-        if ($bigOrderInfo['order_type'] == 4) {
-            $orderInfo = $this->OrderTownModel->where('big_order_id = ' . $data['order_id'])->find();
+        $bigOrderInfo  =  $this->OrderModel->where('id = '.$data['order_id'])->find();
+        if ($bigOrderInfo['order_type'] == 4){
+            $orderInfo = $this->OrderTownModel->where('big_order_id = '. $data['order_id'])->find();
             if (!$orderInfo) {
                 echoOk(301, '订单错误', []);
             }
-        } else {
-            $orderInfo = $this->OrderTrafficModel->where('big_order_id = ' . $data['order_id'])->find();
+        }else{
+            $orderInfo = $this->OrderTrafficModel->where('big_order_id = '. $data['order_id'])->find();
             if (!$orderInfo) {
                 echoOk(301, '订单错误', []);
             }
@@ -725,7 +727,6 @@ class UserCallController extends CommonController
         }
         echoOk(200, '操作成功');
     }
-
     // 我的常用地址
     public function my_address()
     {
@@ -742,7 +743,6 @@ class UserCallController extends CommonController
         $lists = $this->UserAddressModel->get_address_lists($con);
         echoOk(200, '获取成功', $lists);
     }
-
     // 设置邀请码
     public function invitation()
     {
@@ -754,16 +754,15 @@ class UserCallController extends CommonController
             'invitation_code1' => $data['invitation'],
         ];
         $resultwhere = $this->UserModel->getWhereInfo($conwhere);
-        if (empty($resultwhere)) {
+        if (empty($resultwhere)){
             echoOk(301, '邀请码不存在！', []);
         }
         $con = [
             'invitation_code1_up' => $data['invitation'],
         ];
-        $result = $this->UserModel->save_info($data['user_id'], $con);
+        $result = $this->UserModel->save_info($data['user_id'],$con);
         echoOk(200, '设置成功', $result);
     }
-
     // 我的订单
     public function my_order()
     {
@@ -776,8 +775,8 @@ class UserCallController extends CommonController
 
         $con = [
             'id' => $data['id'],
-            'page' => $data['page'] ? '' : 1,
-            'limit' => $data['limit'] ? '' : 10,
+            'page' => $data['page']?'':1,
+            'limit' => $data['limit']?'':10,
         ];
 
         if ($data['category_id'] == 4) {
@@ -785,16 +784,16 @@ class UserCallController extends CommonController
             $lists = $this->OrderTownModel->get_town_order_lists($con);
         } else {
             //专车送 顺风送 代买 订单
-            if ($data['category_id'] == 1) {
+            if ($data['category_id'] == 1){
                 //待接单
                 $order_status = 2;
-            } elseif ($data['category_id'] == 2) {
+            }elseif ($data['category_id'] == 2){
                 //已接单
                 $order_status = 3;
-            } elseif ($data['category_id'] == 3) {
+            }elseif ($data['category_id'] == 3){
                 //已完成
                 $order_status = 8;
-            } else {
+            }else{
                 echoOk(301, '参数错误', []);
             }
             $con['order_status'] = $order_status;
@@ -803,7 +802,6 @@ class UserCallController extends CommonController
 
         echoOk(200, '获取成功', $lists);
     }
-
     // 我的订单详情
     public function my_order_info()
     {
@@ -812,16 +810,15 @@ class UserCallController extends CommonController
         if (empty($data['id'])) {
             echoOk(301, '必填项不能为空', []);
         }
-        if ($data['type'] == 2) {
+        if ($data['type'] == 2){
             //代驾
             $lists_one = $this->OrderTownModel->get_trip_details($data['id']);
-        } else {
+        }else{
             //专车 顺风 代买
             $lists_one = $this->OrderTrafficModel->get_trip_details($data['id']);
         }
         echoOk(200, '获取成功', $lists_one);
     }
-
     //计算订单金额.
     public function order_money()
     {
@@ -856,22 +853,22 @@ class UserCallController extends CommonController
 //        $duration = $distanceInfo['result']['elements'][0]['duration']; //用时
 
         //获得预约时间
-        $data_now = strtotime($data['pickerDate'] . " " . $data['pickerTime']);
+        $data_now = strtotime($data['pickerDate']." ".$data['pickerTime']);
         //判断是否是夜间单
-        $zero_time = strtotime(date('Y-m-d', strtotime('+1 day')));
-        $zero_time_now = strtotime(date('Y-m-d', $data_now));
+        $zero_time = strtotime(date('Y-m-d',strtotime('+1 day')));
+        $zero_time_now = strtotime(date('Y-m-d',$data_now));
         $zero_time_now7 = floatval($zero_time_now) + 25200;
         $time_start = floatval($zero_time) - 7200;
         //费用计算
-        if ($data['category_type'] == 1) {
+        if ($data['category_type']==1){
             //专车送
             $km1 = $carPriceSettingInfo['km1'] * 1000;
             $km2 = $carPriceSettingInfo['km2'] * 1000;
             if ($distance > $km1) {
-                if ($distance > $km2) {
+                if ($distance > $km2){
                     $distance = $distance - $km1; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price6'];
-                } else {
+                }else{
                     $distance = $distance - $km1; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price2'];
                 }
@@ -879,33 +876,33 @@ class UserCallController extends CommonController
             } else {
                 $money = $carPriceSettingInfo['price1']; //起步价
             }
-        } elseif ($data['category_type'] == 2) {
+        }elseif ($data['category_type']==2){
             //顺路送
             $km1 = $carPriceSettingInfo['km1'] * 1000;
             $km2 = $carPriceSettingInfo['km2'] * 1000;
             $km3 = $carPriceSettingInfo['km3'] * 1000;
             $km4 = $carPriceSettingInfo['km4'] * 1000;
             $km5 = $carPriceSettingInfo['km5'] * 1000;
-            if ($distance > $km1) {
-                if ($distance > $km2) {
-                    if ($distance > $km3) {
-                        if ($distance > $km4) {
-                            if ($distance > $km5) {
+            if ($distance > $km1){
+                if ($distance > $km2){
+                    if ($distance > $km3){
+                        if ($distance > $km4){
+                            if ($distance > $km5){
                                 $distance = $distance - $km1; // 实际公里-起步公里
                                 $km_price = $carPriceSettingInfo['price6'];
-                            } else {
+                            }else{
                                 $distance = $distance - $km1; // 实际公里-起步公里
                                 $km_price = $carPriceSettingInfo['price5'];
                             }
-                        } else {
+                        }else{
                             $distance = $distance - $km1; // 实际公里-起步公里
                             $km_price = $carPriceSettingInfo['price4'];
                         }
-                    } else {
+                    }else{
                         $distance = $distance - $km1; // 实际公里-起步公里
                         $km_price = $carPriceSettingInfo['price3'];
                     }
-                } else {
+                }else{
                     $distance = $distance - $km1; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price2'];
                 }
@@ -913,56 +910,56 @@ class UserCallController extends CommonController
             } else {
                 $money = $carPriceSettingInfo['price1']; //起步价
             }
-        } elseif ($data['category_type'] == 3) {
+        }elseif ($data['category_type']==3){
             //代买
-            if ($data['category_type_buy'] != 1) {
+            if ($data['category_type_buy'] != 1){
                 $km1 = $carPriceSettingInfo['km1'] * 1000;
-                if ($distance > $km1) {
+                if ($distance > $km1){
                     $distance = $distance - $km1; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price6'];
                     $money = $km_price * ($distance / 1000) + $carPriceSettingInfo['price1']; //公里单价乘以 每公里价格+起步价
-                } else {
+                }else{
                     $money = $carPriceSettingInfo['price1']; //起步价
                 }
-            } else {
+            }else{
                 $money = $carPriceSettingInfo['price1']; //起步价
             }
-        } elseif ($data['category_type'] == 4) {
+        }elseif ($data['category_type']==4){
             //代驾
             $km6 = $carPriceSettingInfo['km6'] * 1000;
             $km7 = $carPriceSettingInfo['km7'] * 1000;
-            if (($data_now >= $zero_time_now) && ($data_now <= $zero_time_now7)) {
-                if ($distance > $km6) {
+            if (($data_now>=$zero_time_now) && ($data_now<=$zero_time_now7)){
+                if ($distance > $km6){
                     $distance = $distance - $km6; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price8'];
                     $money = $km_price * ($distance / 1000) + $carPriceSettingInfo['price10']; //公里单价乘以 每公里价格+起步价
-                } else {
+                }else{
                     $money = $carPriceSettingInfo['price10'];
                 }
-            } elseif (($data_now >= $time_start) && ($data_now <= $zero_time)) {
-                if ($distance > $km6) {
+            }elseif (($data_now>=$time_start) && ($data_now<=$zero_time)){
+                if ($distance > $km6){
                     $distance = $distance - $km6; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price8'];
                     $money = $km_price * ($distance / 1000) + $carPriceSettingInfo['price10']; //公里单价乘以 每公里价格+起步价
-                } else {
+                }else{
                     $money = $carPriceSettingInfo['price10'];
                 }
-            } else {
-                if ($distance > $km7) {
+            }else{
+                if ($distance > $km7){
                     $distance = $distance - $km7; // 实际公里-起步公里
                     $km_price = $carPriceSettingInfo['price9'];
                     $money = $km_price * ($distance / 1000) + $carPriceSettingInfo['price11']; //公里单价乘以 每公里价格+起步价
-                } else {
+                }else{
                     $money = $carPriceSettingInfo['price11'];
                 }
             }
-        } else {
+        }else{
             echoOk('301', '数据错误');
         }
-        if ($data['category_type'] < 4) {
-            if (($data_now >= $zero_time_now) && ($data_now <= $zero_time_now7)) {
+        if ($data['category_type'] < 4){
+            if (($data_now>=$zero_time_now) && ($data_now<=$zero_time_now7)){
                 $money = $money + $carPriceSettingInfo['price7'];
-            } elseif (($data_now >= $time_start) && ($data_now <= $zero_time)) {
+            } elseif (($data_now>=$time_start) && ($data_now<=$zero_time)){
                 $money = $money + $carPriceSettingInfo['price7'];
             }
         }
@@ -973,13 +970,13 @@ class UserCallController extends CommonController
             $money = 0;
         }
         //获取小费
-        $tip = empty($data['tip']) ? 0 : $data['tip'];
+        $tip = empty($data['tip'])?0:$data['tip'];
         //获取保价费
-        $protect_price = empty($data['protect_price']) ? 0 : $data['protect_price'];
-        $info['money'] = round($money, 2) + floatval($tip) + floatval($protect_price);
+        $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
+        $info['money'] = round($money,2)  + floatval($tip) + floatval($protect_price);
         $info['money'] = 0.01;
-        $info['distance'] = floatval($distance_now) / 1000;
-        $info['tip_price'] = $tip;
+        $info['distance'] =floatval($distance_now) / 1000;
+        $info['tip_price'] =$tip;
         echoOk(200, '获取成功', $info);
     }
 
