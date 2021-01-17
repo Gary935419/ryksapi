@@ -346,34 +346,36 @@ class UserController extends CommonController
 
     }
 
-    //司机投诉乘客
+    //报备处理
     public function complaint()
     {
         $data = self::$_DATA;
-//        id 司机id orderId 订单id content 投诉内容 type 2司机 1乘客
-        if (empty( $data['id'] ) || empty( $data['orderId'] ) || empty( $data['content'] ) || empty( $data['type'] )) {
+//        id 司机id orderId 订单id content 报备内容 type 2司机 1乘客
+        if (empty( $data['order_type'] ) || empty( $data['id'] ) || empty( $data['orderId'] ) || empty( $data['content'] ) || empty( $data['type'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
 
         $infoWhere['uid']      = $data['id'];
         $infoWhere['order_id'] = $data['orderId'];
+        $infoWhere['order_type'] = $data['order_type'];
         $info                  = $this->OrderComplaintModel->where( $infoWhere )->find();
 
         if ($info) {
-            echoOk( 301 , '订单已经投诉' );
+            echoOk( 301 , '订单已经报备了,请重新选择!' );
         }
 
         $complaintData['uid']      = $data['id'];
         $complaintData['order_id'] = $data['orderId'];
         $complaintData['content']  = $data['content'];
         $complaintData['type']     = $data['type'];
+        $complaintData['order_type']     = $data['order_type'];
         $complaintData['dateline'] = time();
         $status                    = $this->OrderComplaintModel->add( $complaintData );
 
         if ($status) {
-            echoOk( 200 , '投诉成功' );
+            echoOk( 200 , '报备成功' );
         } else {
-            echoOk( 301 , '保存失败' );
+            echoOk( 301 , '报备失败' );
         }
     }
 

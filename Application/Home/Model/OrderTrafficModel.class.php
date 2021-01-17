@@ -337,7 +337,7 @@ class OrderTrafficModel extends Model
     public function get_order_lists($con,$type)
     {
         if ($type == 1){
-            $where = 'order_type = 1 and order_type = 2 and driver_id = ' . $con['id'];
+            $where = 'order_type < 3 and driver_id = ' . $con['id'];
         }else{
             $where = 'order_type = 3 and driver_id = ' . $con['id'];
         }

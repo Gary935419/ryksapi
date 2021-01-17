@@ -269,9 +269,15 @@ class DriverPickController extends CommonController
             case 1: // 接单
                 sleep( 0.5 );
                 if ($data['taker_type_id'] == 1){
+                    if ($driverInfo['user_check'] != 1){
+                        echoOk( 301 , '你还没有认证！请先去认证！' );
+                    }
                     $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                     $orderInfotown = array();
                 }else{
+                    if ($driverInfo['driving_check'] != 1){
+                        echoOk( 301 , '你还没有认证！请先去认证！' );
+                    }
                     $orderInfo = array();
                     $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                 }
