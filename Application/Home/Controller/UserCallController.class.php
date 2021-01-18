@@ -420,7 +420,24 @@ class UserCallController extends CommonController
             echoOk(301, '操作失败');
         }
     }
-
+    /**
+     * 发送通知
+     */
+    public function order_send()
+    {
+        $data = self::$_DATA;
+        if (empty($data['id']) || empty($data['type'])) {
+            echoOk(301, '必填项不能为空');
+        }
+        if($data['type'] == 1){
+            $this->OrderTownModel->online_send_new($data['id']);
+        }elseif ($data['type'] == 2){
+            $this->OrderTownModel->online_send($data['id']);
+        }else{
+            echoOk(301, '数据错误');
+        }
+        echoOk(200, '操作成功');
+    }
     /**
      * 获取用户叫单信息
      */

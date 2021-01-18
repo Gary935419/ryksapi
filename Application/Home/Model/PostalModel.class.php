@@ -26,7 +26,8 @@ class PostalModel extends Model {
     public function status($k) {
         $arr = array(
             1 => '申请提现',
-            2 => '提现成功'
+            2 => '提现成功',
+            3 => '提现驳回'
         );
 
         if (!empty($k)) {
