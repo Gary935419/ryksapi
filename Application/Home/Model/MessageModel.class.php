@@ -46,7 +46,7 @@ class MessageModel extends Model {
     public function get_lists($con) {
 //        $where  = 'type = '.$con['type'];
 //        $where .= ' AND del_user NOT LIKE "%['.$con['id'].']%"';
-        $where = '';
+        $where = 'del_user NOT LIKE "%['.$con['id'].']%"';
         $page = $con['page'] ? $con['page']  : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page-1)*$limit.",".$limit;

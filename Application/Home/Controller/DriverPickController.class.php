@@ -709,8 +709,8 @@ class DriverPickController extends CommonController
         $orderExtendInfo                      = $this->OrderExtendModel->where( $orderExtendInfoWhere )->find();
 
         if ($orderExtendInfo) {
-
-            $orderData['order_status'] = 8;//7前往目的地
+            $orderData['status'] = 6;
+            $orderData['order_status'] = 8;
             $orderData['complete_time'] = time();//
             $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->save( $orderData );
 
@@ -745,17 +745,19 @@ class DriverPickController extends CommonController
                 $invitation_code2_up = $driverInfo['invitation_code2_up'];
                 $where['invitation_code2'] = $invitation_code2_up;
                 $user_info_up = $this->UserModel->getWhereInfo($where);
-                $moneynew = floatval($user_info_up['money']) + 20;
-                $this->UserModel->save_info($user_info_up['id'],array('money' => $moneynew));
-                $this->UserModel->save_info($orderInfo['driver_id'],array('is_invitation' => 1));
-                $insert = [
-                    'user_id' => $user_info_up['id'],
-                    'user_id_up' => $orderInfo['driver_id'],
-                    'price' => 20,
-                    'add_time' => time(),
-                ];
-                //推荐记录插入
-                $this->UserRecommendedModel->recommended_insert($insert);
+                if (!empty($user_info_up)){
+                    $moneynew = floatval($user_info_up['money']) + 20;
+                    $this->UserModel->save_info($user_info_up['id'],array('money' => $moneynew));
+                    $this->UserModel->save_info($orderInfo['driver_id'],array('is_invitation' => 1));
+                    $insert = [
+                        'user_id' => $user_info_up['id'],
+                        'user_id_up' => $orderInfo['driver_id'],
+                        'price' => 20,
+                        'add_time' => time(),
+                    ];
+                    //推荐记录插入
+                    $this->UserRecommendedModel->recommended_insert($insert);
+                }
             }
             echoOk( 200 , '提交成功' );
 //            echoOk( 301 , json_encode($data));

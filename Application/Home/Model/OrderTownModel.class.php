@@ -56,30 +56,10 @@ class OrderTownModel extends Model
             'latitude'       => $order['start_latitude'] ,
             'small_order_id' => $order['id']
         ];
-        $driver_id = $userWorkingModel->search_working_driver_one( $condition );
+        $driver_ids = $userWorkingModel->search_working_driver( $condition );
         $waiting_id = $order_id;
-        // ----- 等待订单信息 -----
-//        $waiting_data = [
-//            'taker_type_id' => '2' , // 市区出行(2)
-//            'driver_id'     => $driver_id ? $driver_id : '' ,
-//            'user_id'       => $order['user_id'] ,
-//            'order_id'      => $order['id'] ,
-//            'add_time'      => time()
-//        ];
-//        if ($waiting_id) {
-//            $orderWaitingModel->set_order( $waiting_id , $waiting_data );
-//        } else {
-//            $waiting_id = $orderWaitingModel->add_waiting( $waiting_data );
-//        }
-
         // ----- 派单 -----
-        if (!empty($driver_id)) { // 已找到司机
-//            $working      = $userWorkingModel->get_working( $driver_id );
-//            $save_working = [
-//                'status_send' => '1' , // 设置派单状态为正在派单(1)
-//                'been_order'  => $working['been_order'] . '[' . $order['id'] . ']' // 已推订单ID集
-//            ];
-//            $userWorkingModel->set_working( $driver_id , $save_working );
+        if (!empty($driver_ids)) { // 已找到司机
 
             $title   = '如邮快送';
             $content = '您有一个新的订单';
@@ -88,7 +68,11 @@ class OrderTownModel extends Model
                 'waiting_id'    => $waiting_id
             ];
             $JModel  = new \Home\Model\JpushModel();
-            $JModel->sj_send_alias( $driver_id , $title , $content , $extras ); // 发送司机消息
+            if (is_array( $driver_ids )) {
+                foreach ($driver_ids as $item) {
+                    $JModel->sj_send_alias( $item , $title , $content , $extras ); // 发送司机消息
+                }
+            }
         }
     }
 
