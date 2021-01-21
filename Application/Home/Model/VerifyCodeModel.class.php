@@ -37,7 +37,10 @@ class VerifyCodeModel extends Model{
         $this->send_code($phone, $code, C('phone_account'), C('phone_psd'));
         return strval($code);
     }
-
+    public function add_code_new($phone,$text) {
+        $this->send_code_new($phone, $text, C('phone_account'), C('phone_psd'));
+        return strval($text);
+    }
     /**
      * 逻辑:验证码是否正确
      * @param $phone 手机
@@ -89,5 +92,13 @@ class VerifyCodeModel extends Model{
             return false;
         }
     }
-
+    public function send_code_new($phone, $code, $cf_username, $cf_userpwd) {
+        $url = "http://106.ihuyi.cn/webservice/sms.php?method=Submit&account=".$cf_username."&password=".$cf_userpwd."&mobile=".$phone."&content=".$code;
+        $html = file_get_contents($url);
+        if ($html) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

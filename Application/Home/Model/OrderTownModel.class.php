@@ -90,8 +90,8 @@ class OrderTownModel extends Model
         $condition = [
             'taker_type_id'  => '2' , // 市区出行(2)
             'car_type_id'    => $order['car_type_id'] ,
-            'longitude'      => $order['start_longitude'] ,
-            'latitude'       => $order['start_latitude'] ,
+            'longitude'      => empty($order['start_longitude'])?'121.654542':$order['start_longitude'] ,
+            'latitude'       => empty($order['start_latitude'])?'38.9508':$order['start_latitude'] ,
             'small_order_id' => $order['id']
         ];
         $driver_ids = $userWorkingModel->search_working_driver( $condition );

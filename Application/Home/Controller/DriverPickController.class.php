@@ -5,6 +5,7 @@ namespace Home\Controller;
 use Home\Model\OrderExtendModel;
 use Home\Model\OrderTrafficModel;
 use Think\Controller;
+use Home\Model\VerifyCodeModel;
 use Home\Model\UserModel;
 use Home\Model\UserWorkingModel;
 use Home\Model\RouteCityModel;
@@ -20,6 +21,7 @@ use Home\Model\CouponModel;
  * Class DriverPickController
  * @package Home\Controller
  * @property UserModel $UserModel
+ * @property VerifyCodeModel $VerifyCodeModel
  * @property UserWorkingModel $UserWorkingModel
  * @property RouteCityModel $RouteCityModel
  * @property CarTypeModel $CarTypeModel
@@ -47,6 +49,7 @@ class DriverPickController extends CommonController
     private $OrderTrafficModel;
     private $OrderExtendModel;
     private $UserRecommendedModel;
+    private $VerifyCodeModel;
 
     public function _initialize()
     {
@@ -63,6 +66,7 @@ class DriverPickController extends CommonController
         $this->OrderTrafficModel   = new OrderTrafficModel();
         $this->OrderExtendModel    = new OrderExtendModel();
         $this->UserRecommendedModel    = new UserRecommendedModel();
+        $this->VerifyCodeModel     = new VerifyCodeModel();
     }
 
     /**
@@ -640,10 +644,12 @@ class DriverPickController extends CommonController
         if (empty($OrderTraffic)){
             echoOk( 301 , '数据错误' );
         }
-        if (empty( $imgInfo['goods_image'] )) {
-            echoOk( 301 , '图片上传失败' );
+        if (empty($imgInfo['goods_image']) || empty($imgInfo['goods_image1']) || empty($imgInfo['goods_image2'])) {
+            echoOk( 301 , '请上传完整三张图片。' );
         } else {
             $extendData['goods_image'] = $imgInfo['goods_image']['path'];
+            $extendData['goods_image1'] = $imgInfo['goods_image1']['path'];
+            $extendData['goods_image2'] = $imgInfo['goods_image2']['path'];
             $this->OrderExtendModel->where( [ 'order_id' => $data['order_id'] ] )->save( $extendData );
         }
 
@@ -658,7 +664,7 @@ class DriverPickController extends CommonController
         //发送取货码
         $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['order_id'] ] )->find();
         $text            = '您的物品由'.$driverInfo['name'].'师傅为您配送，车牌号码：'.$driverInfo['car_number'].',电话:'.$driverInfo['account'].',收件码：'.$orderExtendInfo['pick_up_code'].',请及时沟通，下楼到方便停车地点取货。如需送货上楼请您线下支付小费，客服电话：4000000739。';
-        $this->send_code( $OrderTraffic['tel'] , $text );
+        $this->VerifyCodeModel->add_code_new($OrderTraffic['tel'], $text);
         echoOk( 200 , '提交成功' );
     }
 
