@@ -939,7 +939,7 @@ class UserCallController extends CommonController
                     $money = $carPriceSettingInfo['price1']; //起步价
                 }
             }else{
-                $money = $carPriceSettingInfo['price1']; //起步价
+                $money = $carPriceSettingInfo['price2']; //起步价
             }
         }elseif ($data['category_type']==4){
             //代驾

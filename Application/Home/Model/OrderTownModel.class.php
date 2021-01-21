@@ -463,7 +463,7 @@ class OrderTownModel extends Model
             $re['account']        = $user['account'];
             $re['car_number']     = $user['car_number'];
             $re['attribute']      = $user['attribute'];
-
+            $re['brand']      = $user['brand'];
             $re['order_small_id'] = $order['id'];
             $re['times']          = date( 'Y-m-d H:i:s' , $order['add_time'] );
             $re['appointment_time'] = empty($order['appointment_time'])?'':date('Y-m-d H:i:s', $order['appointment_time']);

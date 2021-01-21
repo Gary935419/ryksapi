@@ -291,13 +291,28 @@ class DriverPickController extends CommonController
                         break;
                     }
                     $this->OrderTrafficModel->startTrans();
-                    // 2) ----- 改变小单状态 -----
-                    $order_save = [
-                        'driver_id'    => $data['id'] ,
-                        'status'       => '2' ,// 小单状态: 2 订单开始
-                        'order_status' => '3', // 3 已接单
-                        'getorder_time' => time() // 接单时间
-                    ];
+                    if (empty($orderInfo['start_longitude']) || empty($orderInfo['start_latitude'])){
+                         // 2) ----- 改变小单状态 -----
+                        $order_save = [
+                            'start_longitude'    => $data['longitude'] ,
+                            'start_latitude'    => $data['latitude'] ,
+                            'start_location'    => "附近地址购买" ,
+                            'address1'    => "附近地址购买" ,
+                            'driver_id'    => $data['id'] ,
+                            'status'       => '2' ,// 小单状态: 2 订单开始
+                            'order_status' => '3', // 3 已接单
+                            'getorder_time' => time() // 接单时间
+                        ];
+                    }else{
+                        // 2) ----- 改变小单状态 -----
+                        $order_save = [
+                            'driver_id'    => $data['id'] ,
+                            'status'       => '2' ,// 小单状态: 2 订单开始
+                            'order_status' => '3', // 3 已接单
+                            'getorder_time' => time() // 接单时间
+                        ];
+                    }
+
                     $this->OrderTrafficModel->set_order( $data['waiting_id'] , $order_save );
                     // 3) ----- 改变司机派送状态、上班状态 -----
                     $working_save = [
@@ -434,7 +449,9 @@ class DriverPickController extends CommonController
             'longitude'       => $user['longitude'] ,
             'latitude'        => $user['latitude'] ,
             'order_status'    => $order['order_status'] ,
-            'order_type'    => $order['order_type'] ,
+            'order_type'      => $order['order_type'] ,
+            'user_name'       => empty($order['name'])?$user['name']:$order['name'] ,
+            'user_account'    => empty($order['tel'])?$user['account']:$order['tel'] ,
         ];
         echoOk( 200 , '获取成功' , $re );
     }
