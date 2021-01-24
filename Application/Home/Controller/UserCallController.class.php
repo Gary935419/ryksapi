@@ -206,8 +206,20 @@ class UserCallController extends CommonController
         }
         //获得预约时间
         $data_now = strtotime($data['pickerDate']." ".$data['pickerTime']);
+
+        $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
+        $order_price1 = floatval($data['price']) - floatval($data['tip_price']);
+        //抽成金额
+        $cost_price = floatval($order_price1) * floatval($carPriceSettingInfo['kg1']) * 0.01;
+        //司机金额
+        $order_driver_price = floatval($order_price1) - floatval($cost_price);
+        //抽成比例
+        $cost_num = $carPriceSettingInfo['kg1'];
         // ----- 添加订单 ----- //
         $add_data = [
+            'cost_price' => empty($cost_price) || $cost_price <= 0 ? 0.00 : $cost_price,
+            'order_driver_price' => empty($order_driver_price) || $order_driver_price <= 0 ? 0.00 : $order_driver_price,
+            'cost_num' => empty($cost_num) || $cost_num <= 0 ? 0.00 : $cost_num,
             'user_id' => $data['id'],
             'car_type_id' => $data['car_type_id'],
             'start_location' => $data['start_location'],
@@ -314,8 +326,19 @@ class UserCallController extends CommonController
         }
         //获得预约时间
         $data_now = strtotime($data['pickerDate']." ".$data['pickerTime']);
+        $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
+        $order_price1 = floatval($data['price']) - floatval($data['protect_price']) - floatval($data['tip_price']);
+        //抽成金额
+        $cost_price = floatval($order_price1) * floatval($carPriceSettingInfo['kg1']) * 0.01;
+        //司机金额
+        $order_driver_price = floatval($order_price1) - floatval($cost_price);
+        //抽成比例
+        $cost_num = $carPriceSettingInfo['kg1'];
         // ----- 添加订单 ----- //
         $add_data = [
+            'cost_price' => empty($cost_price) || $cost_price <= 0 ? 0.00 : $cost_price,
+            'order_driver_price' => empty($order_driver_price) || $order_driver_price <= 0 ? 0.00 : $order_driver_price,
+            'cost_num' => empty($cost_num) || $cost_num <= 0 ? 0.00 : $cost_num,
             'user_id' => $data['id'],
             'car_type_id' => 1,
             'file_type' => 2,
@@ -426,15 +449,103 @@ class UserCallController extends CommonController
     public function order_send()
     {
         $data = self::$_DATA;
-        if (empty($data['id']) || empty($data['type'])) {
+        if (empty($data['id']) || empty($data['taker_type_id']) || empty($data['waiting_id'])) {
             echoOk(301, '必填项不能为空');
         }
-        if($data['type'] == 1){
-            $this->OrderTownModel->online_send_new($data['id']);
-        }elseif ($data['type'] == 2){
-            $this->OrderTownModel->online_send($data['id']);
+        $driverInfo = $this->UserModel->get_info( $data['id'] );
+        if (empty($driverInfo)){
+            echoOk( 301 , '数据错误' );
+        }
+        if ($driverInfo['credit_points'] < 20){
+            echoOk( 301 , '信誉分低于20分、不可接单，请您联系客服处理分数问题！' );
+        }
+        if ($data['taker_type_id'] == 1){
+            if ($driverInfo['user_check'] != 1){
+                echoOk( 301 , '你还没有认证！请先去认证！' );
+            }
+            $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+            $orderInfotown = array();
+        }elseif ($data['taker_type_id'] == 2){
+            if ($driverInfo['driving_check'] != 1){
+                echoOk( 301 , '你还没有认证！请先去认证！' );
+            }
+            $orderInfo = array();
+            $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
         }else{
-            echoOk(301, '数据错误');
+            echoOk( 301 , '数据错误！' );
+        }
+        $todayStart= strtotime(date('Y-m-d 00:00:00', time()));
+        $todayEnd= strtotime(date('Y-m-d 23:59:59', time()));
+        $where_order  = 'driver_id = '.$data['id'];
+        $where_order .= ' AND getorder_time BETWEEN '.$todayStart.' AND '.$todayEnd;
+        $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
+        $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
+        $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
+        $OrderCount = floatval($OrderTrafficCount) + floatval($OrderTownCount);
+        if ($OrderCount >= $carPriceSettingInfo['km2']){
+            echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
+            return false;
+        }
+        if (!empty($orderInfo)){
+            if (!empty( $orderInfo['driver_id'] )) {
+                echoOk( 301 , '已被接单' );
+                return false;
+            }
+            $this->OrderTrafficModel->startTrans();
+            if (empty($orderInfo['start_longitude']) || empty($orderInfo['start_latitude'])){
+                $userwork = $this->UserWorkingModel->get_working($data['id']);
+                // 2) ----- 改变小单状态 -----
+                $order_save = [
+                    'start_longitude'    => $userwork['longitude'] ,
+                    'start_latitude'    => $userwork['latitude'] ,
+                    'start_location'    => "附近地址购买" ,
+                    'address1'    => "附近地址购买" ,
+                    'driver_id'    => $data['id'] ,
+                    'status'       => '2' ,// 小单状态: 2 订单开始
+                    'order_status' => '3', // 3 已接单
+                    'getorder_time' => time() // 接单时间
+                ];
+            }else{
+                // 2) ----- 改变小单状态 -----
+                $order_save = [
+                    'driver_id'    => $data['id'] ,
+                    'status'       => '2' ,// 小单状态: 2 订单开始
+                    'order_status' => '3', // 3 已接单
+                    'getorder_time' => time() // 接单时间
+                ];
+            }
+
+            $this->OrderTrafficModel->set_order( $data['waiting_id'] , $order_save );
+            // 3) ----- 改变司机派送状态、上班状态 -----
+            $working_save = [
+                'status_send' => '0' ,
+                'status'      => '3' , // 状态:行程中(3)
+            ];
+            $this->UserWorkingModel->set_working( $data['id'] , $working_save );
+            $this->OrderTrafficModel->commit();
+        }elseif (!empty($orderInfotown)){
+            if (!empty( $orderInfotown['driver_id'] )) {
+                echoOk( 301 , '已被接单' );
+                return false;
+            }
+            $this->OrderTownModel->startTrans();
+            // 2) ----- 改变小单状态 -----
+            $order_save = [
+                'driver_id'    => $data['id'] ,
+                'status'       => '2' ,// 小单状态: 2 待接驾
+                'order_status' => '3', // 3 已接单
+                'getorder_time' => time() // 接单时间
+            ];
+            $this->OrderTownModel->save_info( $data['waiting_id'] , $order_save );
+            // 3) ----- 改变司机派送状态、上班状态 -----
+            $working_save = [
+                'status_send' => '0' ,
+                'status'      => '3' , // 状态:行程中(3)
+            ];
+            $this->UserWorkingModel->set_working( $data['id'] , $working_save );
+            $this->OrderTownModel->commit();
+        }else{
+            echoOk( 301 , '数据错误' );
         }
         echoOk(200, '操作成功');
     }

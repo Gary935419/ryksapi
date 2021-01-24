@@ -6,6 +6,7 @@ use Home\Model\OrderExtendModel;
 use Home\Model\OrderTrafficModel;
 use Think\Controller;
 use Home\Model\VerifyCodeModel;
+use Home\Model\CarPriceSettingModel;
 use Home\Model\UserModel;
 use Home\Model\UserWorkingModel;
 use Home\Model\RouteCityModel;
@@ -24,6 +25,7 @@ use Home\Model\CouponModel;
  * @property VerifyCodeModel $VerifyCodeModel
  * @property UserWorkingModel $UserWorkingModel
  * @property RouteCityModel $RouteCityModel
+ * @property CarPriceSettingModel $CarPriceSettingModel
  * @property CarTypeModel $CarTypeModel
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTrafficModel $OrderTrafficModel
@@ -40,6 +42,7 @@ class DriverPickController extends CommonController
     private $UserModel;
     private $UserWorkingModel;
     private $RouteCityModel;
+    private $CarPriceSettingModel;
     private $CarTypeModel;
     private $OrderIntercityModel;
     private $OrderTownModel;
@@ -58,6 +61,7 @@ class DriverPickController extends CommonController
         $this->UserWorkingModel    = new UserWorkingModel();
         $this->RouteCityModel      = new RouteCityModel();
         $this->CarTypeModel        = new CarTypeModel();
+        $this->CarPriceSettingModel = new CarPriceSettingModel();
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel      = new OrderTownModel();
         $this->OrderWaitingModel   = new OrderWaitingModel();
@@ -191,7 +195,7 @@ class DriverPickController extends CommonController
         if (empty( $data['id'] ) || empty( $data['waiting_id'] ) || empty( $data['longitude'] ) || empty( $data['latitude'] ) || empty( $data['taker_type_id'] )) {
             echoOk( 301 , '必填项不能为空' );
         }
-
+        $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
         // 获取显示信息
         if ($data['taker_type_id'] == 1){
             $OrderTraffic = $this->OrderTrafficModel->get_info( $data['waiting_id'] );
@@ -220,6 +224,10 @@ class DriverPickController extends CommonController
             $end_location = empty($OrderTraffic['end_location'])?'暂无终点地':$OrderTraffic['end_location'];
             $order_type = empty($OrderTraffic['order_type'])?'666':$OrderTraffic['order_type'];
             $appointment_time = empty($OrderTraffic['appointment_time'])?'666':$OrderTraffic['appointment_time'];
+            $item_information = empty($OrderTraffic['goods_name'])?'':$OrderTraffic['goods_name'];
+            $order_price = empty($OrderTraffic['order_driver_price'])?'':$OrderTraffic['order_driver_price'];
+            $order_tip_price = empty($OrderTraffic['tip_price'])?'':$OrderTraffic['tip_price'];
+            $order_remark = empty($OrderTraffic['goods_remarks'])?'':$OrderTraffic['goods_remarks'];
         }elseif (!empty($OrderTown)){
             $from = $data['latitude'] . ',' . $data['longitude'];
             $to = $OrderTown['start_latitude'] . ',' . $OrderTown['start_longitude'];
@@ -235,6 +243,10 @@ class DriverPickController extends CommonController
             $end_location = empty($OrderTown['end_location'])?'暂无终点地':$OrderTown['end_location'];
             $order_type = empty($OrderTown['order_type'])?'666':$OrderTown['order_type'];
             $appointment_time = empty($OrderTown['appointment_time'])?'666':$OrderTown['appointment_time'];
+            $item_information = "";
+            $order_price = empty($OrderTown['order_driver_price'])?'':$OrderTown['order_driver_price'];
+            $order_tip_price = empty($OrderTown['tip_price'])?'':$OrderTown['tip_price'];
+            $order_remark = empty($OrderTown['remarks'])?'':$OrderTown['remarks'];
         }else{
             echoOk( 301 , '数据错误！' );
         }
@@ -247,6 +259,10 @@ class DriverPickController extends CommonController
             'pickup_distance'     => $pickup_distance ,      //司机距离取货点距离  /  司机距离上车点距离
             'delivery_distance'     => $delivery_distance ,  //司机取货点至送达地点距离  /  上车点到下车点距离
             'appointment_time'     => $appointment_time ,    //预约时间
+            'item_information'     => $item_information ,    //物品信息
+            'order_price'     => $order_price ,              //订单费用
+            'order_tip_price'     => $order_tip_price ,      //订单小费
+            'order_remark'     => $order_remark ,            //订单备注
         ];
 
         echoOk( 200 , '获取成功' , $re );
@@ -285,9 +301,21 @@ class DriverPickController extends CommonController
                     $orderInfo = array();
                     $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                 }
+                $todayStart= strtotime(date('Y-m-d 00:00:00', time()));
+                $todayEnd= strtotime(date('Y-m-d 23:59:59', time()));
+                $where_order  = 'driver_id = '.$data['id'];
+                $where_order .= ' AND getorder_time BETWEEN '.$todayStart.' AND '.$todayEnd;
+                $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
+                $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
+                $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
+                $OrderCount = floatval($OrderTrafficCount) + floatval($OrderTownCount);
+                if ($OrderCount >= $carPriceSettingInfo['km2']){
+                    echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
+                    break;
+                }
                 if (!empty($orderInfo)){
                     if (!empty( $orderInfo['driver_id'] )) {
-                        echoOk( 301 , '已经接单' );
+                        echoOk( 301 , '已被接单' );
                         break;
                     }
                     $this->OrderTrafficModel->startTrans();
@@ -323,7 +351,7 @@ class DriverPickController extends CommonController
                     $this->OrderTrafficModel->commit();
                 }elseif (!empty($orderInfotown)){
                     if (!empty( $orderInfotown['driver_id'] )) {
-                        echoOk( 301 , '已经接单' );
+                        echoOk( 301 , '已被接单' );
                         break;
                     }
                     $this->OrderTownModel->startTrans();

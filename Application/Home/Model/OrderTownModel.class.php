@@ -458,8 +458,9 @@ class OrderTownModel extends Model
         if ($order) {
             $UserModel            = new \Home\Model\UserModel();
             $user                 = $UserModel->get_info( $order['driver_id'] );
-            $re['head_img']       = $user['head_img'];
-            $re['name']           = $user['name'];
+            $frist = mb_substr($user['name'],0,1,'utf-8');
+            $re['head_img'] = $user['head_img'];
+            $re['name'] = empty($user['name'])?'':$frist."师傅";
             $re['account']        = $user['account'];
             $re['car_number']     = $user['car_number'];
             $re['attribute']      = $user['attribute'];

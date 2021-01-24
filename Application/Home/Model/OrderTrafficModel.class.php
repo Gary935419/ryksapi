@@ -243,7 +243,11 @@ class OrderTrafficModel extends Model
     public function get_trip_order_lists($con)
     {
         $where = 'user_id = ' . $con['id'];
-        $where .= ' AND order_status = ' . $con['order_status'];
+        if ($con['order_status'] == 3){
+            $where .= ' AND order_status > 2 AND order_status < 8 ';
+        }else{
+            $where .= ' AND order_status = ' . $con['order_status'];
+        }
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;
@@ -283,8 +287,9 @@ class OrderTrafficModel extends Model
         if ($order) {
             $UserModel = new \Home\Model\UserModel();
             $user = $UserModel->get_info($order['driver_id']);
+            $frist = mb_substr($user['name'],0,1,'utf-8');
             $re['head_img'] = $user['head_img'];
-            $re['name'] = $user['name'];
+            $re['name'] = empty($user['name'])?'':$frist."师傅";
             $re['account'] = $user['account'];
             $re['car_number'] = $user['car_number'];
             $re['attribute'] = $user['attribute'];
