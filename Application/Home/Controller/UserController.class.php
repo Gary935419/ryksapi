@@ -128,12 +128,17 @@ class UserController extends CommonController
         if (empty( $imgInfo['img_cards_face'] ) || empty( $imgInfo['img_cards_side'] )) {
             echoOk( 301 , '图片上传失败' );
         } else {
+            //正面
             $url['img_cards_face'] = $imgInfo['img_cards_face']['path'];
+            //反面
             $url['img_cards_side'] = $imgInfo['img_cards_side']['path'];
+            //驾驶证
             $url['img_drivers']    = $imgInfo['img_drivers']['path'];
+            //行驶证
             $url['img_vehicle']    = $imgInfo['img_vehicle']['path'];
+            //人车合影
             $url['img_car_user']   = $imgInfo['img_car_user']['path'];
-            $url['group_photo']    = $imgInfo['group_photo']['path'];
+            //工作照
             $url['img_worker']     = $imgInfo['img_worker']['path'];
         }
 
@@ -143,7 +148,7 @@ class UserController extends CommonController
 
 
         if ($data['check_type'] == 1) {
-//            司机
+//          跑腿认证
             $check     = 3;
             $save_data = [
                 'sex'            => $data['sex'] ,
@@ -155,24 +160,25 @@ class UserController extends CommonController
                 'img_cards_face' => $url['img_cards_face'] ,
                 'img_cards_side' => $url['img_cards_side'] ,
                 'img_drivers'    => $url['img_drivers'] ,
-                'img_car_user'   => $url['img_car_user'] ,//人车合影
                 'img_vehicle'    => $url['img_vehicle'] ,
+                'img_car_user'   => $url['img_car_user'] ,
+                'img_worker'       => $url['img_worker'] ,
                 'car_type_id'    => $data['car_type_id'] ,
                 'attribute'      => $data['attribute'] ,
-                'group_photo'    => $url['group_photo'] ,
                 'head_img'       => $url['img_worker'] ,
-                'user_check'          => $check , //跑腿认证
+                'user_check'     => $check , //跑腿认证
             ];
         } else {
 
             $userInfo = $this->UserModel->get_info( $data['id'] );
 
-            //            代驾
+            //  代驾认证
             $drivingCheck = 3;
 
-            if ($userInfo['check'] != 1) {
+            if ($userInfo['user_check'] != 1) {
                 $save_data = [
                     'sex'                    => $data['sex'] ,
+                    'head_img'               => $url['img_worker'] ,
                     'driving_name'           => $data['name'] ,
                     'driving_cards'          => $data['cards'] ,
                     'driving_times'          => $data['times'] ,
@@ -180,12 +186,10 @@ class UserController extends CommonController
                     'driving_img_cards_face' => $url['img_cards_face'] ,
                     'driving_img_cards_side' => $url['img_cards_side'] ,
                     'driving_img_drivers'    => $url['img_drivers'] ,
-                    'driving_img_vehicle'    => $url['img_vehicle'] ,
+                    'driving_img_worker'    =>  $url['img_worker'] ,
                     'driving_car_type_id'    => $data['car_type_id'] ,
                     'driving_attribute'      => $data['attribute'] ,
                     'driving_check'          => $drivingCheck ,//代驾认证
-                    'head_img'               => $url['img_worker'] ,
-
                 ];
             } else {
                 $save_data = [
@@ -197,14 +201,12 @@ class UserController extends CommonController
                     'driving_img_cards_face' => $url['img_cards_face'] ,
                     'driving_img_cards_side' => $url['img_cards_side'] ,
                     'driving_img_drivers'    => $url['img_drivers'] ,
-                    'driving_img_vehicle'    => $url['img_vehicle'] ,
+                    'driving_img_worker'    =>  $url['img_worker'] ,
                     'driving_car_type_id'    => $data['car_type_id'] ,
                     'driving_attribute'      => $data['attribute'] ,
                     'driving_check'          => $drivingCheck ,//代驾认证
-
                 ];
             }
-
         }
 
         $temp = $this->UserModel->save_info( $data['id'] , $save_data );

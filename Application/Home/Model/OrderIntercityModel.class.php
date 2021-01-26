@@ -32,7 +32,7 @@ class OrderIntercityModel extends Model {
         $arr = array(
             1 => '待接单',
             2 => '待接驾',
-            3 => '乘客上车',
+            3 => '用户上车',
             4 => '已开始',
             5 => '已支付',
             6 => '已完成',
@@ -56,7 +56,7 @@ class OrderIntercityModel extends Model {
         $arr = array(
             6 => '已完成',
             9 => '未完成',
-            10 => '线下乘客上车'
+            10 => '线下用户上车'
         );
 
         if (!empty($k)) {

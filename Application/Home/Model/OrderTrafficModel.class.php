@@ -243,11 +243,7 @@ class OrderTrafficModel extends Model
     public function get_trip_order_lists($con)
     {
         $where = 'user_id = ' . $con['id'];
-        if ($con['order_status'] == 3){
-            $where .= ' AND order_status > 2 AND order_status < 8 ';
-        }else{
-            $where .= ' AND order_status = ' . $con['order_status'];
-        }
+        $where .= ' AND order_status > 1 AND order_type = ' . $con['order_type'];
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;
@@ -269,6 +265,34 @@ class OrderTrafficModel extends Model
                 $re[$k]['price'] = $v['price'];
                 $re[$k]['evaluate'] = $v['evaluate'];
                 $re[$k]['order_type'] = $v['order_type'];
+                switch ($v['order_status']){
+                    case 2:
+                        $re[$k]['status_msg'] = "待接单";
+                        break;
+                    case 3:
+                        $re[$k]['status_msg'] = "已接单";
+                        break;
+                    case 4:
+                        $re[$k]['status_msg'] = "前往出发地";
+                        break;
+                    case 5:
+                        $re[$k]['status_msg'] = "到达出发地";
+                        break;
+                    case 6:
+                        $re[$k]['status_msg'] = "验证提货码";
+                        break;
+                    case 7:
+                        $re[$k]['status_msg'] = "前往目的地";
+                        break;
+                    case 8:
+                        $re[$k]['status_msg'] = "已完成";
+                        break;
+                    default:
+                        $re[$k]['status_msg'] = "没人接";
+                }
+                if ($v['status'] == 7){
+                    $re[$k]['status_msg'] = "已取消";
+                }
             }
         }
         return $re;
@@ -298,16 +322,16 @@ class OrderTrafficModel extends Model
             $re['times'] = date('Y-m-d H:i:s', $order['add_time']);
             $re['appointment_time'] = empty($order['appointment_time'])?'':date('Y-m-d H:i:s', $order['appointment_time']);
             $re['getorder_time'] = empty($order['getorder_time'])?'':date('Y-m-d H:i:s', $order['getorder_time']);
-            $re['takeup_time'] = empty($order['takeup_time'])?'':date('Y-m-d H:i:s', $order['takeup_time']);
+            $re['takegoods_time'] = empty($order['takegoods_time'])?'':date('Y-m-d H:i:s', $order['takegoods_time']);
             $re['complete_time'] = empty($order['complete_time'])?'':date('Y-m-d H:i:s', $order['complete_time']);
             $re['status'] = $order['status'];
             $re['start_location'] = $order['start_location'];
             $re['end_location'] = $order['end_location'];
-            $re['price'] = $order['price'];
-            $re['protect_price'] = $order['protect_price'];
-            $re['tip_price'] = $order['tip_price'];
-            $re['preferential_price'] = $order['preferential_price'];
-            $re['distribution_km'] = $order['distribution_km'];
+            $re['price'] = sprintf("%.2f",$order['price']);
+            $re['protect_price'] = sprintf("%.2f",$order['protect_price']);
+            $re['tip_price'] = sprintf("%.2f",$order['tip_price']);
+            $re['preferential_price'] = sprintf("%.2f",$order['preferential_price']);
+            $re['distribution_km'] = sprintf("%.2f",$order['distribution_km']);
             $re['evaluate'] = empty($order['evaluate'])?'':$order['evaluate'];
             $re['user_id'] = $order['user_id'];
             $re['goods_remarks'] = $order['goods_remarks'];
@@ -320,6 +344,18 @@ class OrderTrafficModel extends Model
                     break;
                 case 3:
                     $re['status_msg'] = "已接单";
+                    break;
+                case 4:
+                    $re['status_msg'] = "前往出发地";
+                    break;
+                case 5:
+                    $re['status_msg'] = "到达出发地";
+                    break;
+                case 6:
+                    $re['status_msg'] = "验证提货码";
+                    break;
+                case 7:
+                    $re['status_msg'] = "前往目的地";
                     break;
                 case 8:
                     $re['status_msg'] = "已完成";
@@ -342,9 +378,11 @@ class OrderTrafficModel extends Model
     public function get_order_lists($con,$type)
     {
         if ($type == 1){
-            $where = 'order_type < 3 and driver_id = ' . $con['id'];
-        }else{
+            $where = 'order_type = 1 and driver_id = ' . $con['id'];
+        }elseif ($type == 2){
             $where = 'order_type = 3 and driver_id = ' . $con['id'];
+        }else{
+            $where = 'order_type = 2 and driver_id = ' . $con['id'];
         }
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
@@ -365,6 +403,8 @@ class OrderTrafficModel extends Model
                 $re[$k]['start_location'] = $v['start_location'];
                 $re[$k]['end_location'] = $v['end_location'];
                 $re[$k]['price'] = $v['price'];
+                $re[$k]['order_driver_price'] = $v['order_driver_price'];
+                $re[$k]['tip_price'] = $v['tip_price'];
             }
         }
         return $re;

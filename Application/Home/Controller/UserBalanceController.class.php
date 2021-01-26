@@ -57,26 +57,39 @@ class UserBalanceController extends CommonController {
             empty($data['money'])) {
             echoOk(301, '必填项不能为空');
         }
-
-        $user = $this->UserModel->get_info($data['id']);
-        if ($user['money'] < $data['money']) {
-            echoOk(301, '总余额不足');
+        $weekarray=array("日","一","二","三","四","五","六");
+        if ($weekarray[date("w")] != '三'){
+            echoOk(301, '抱歉！请在周三提现！');
         }
+//        date("Y-m-d H:i:s",time());
+        $date1 = date("Y-m-d",time());
+        $datestart = strtotime($date1." 09:00");
+        $dateend = strtotime($date1." 22:00");
+        if (time() >= $datestart && time() <= $dateend){
+            if ($data['money'] >= 10000){
+                echoOk(301, '抱歉！提现金额过大！');
+            }
+            $user = $this->UserModel->get_info($data['id']);
+            if ($user['money'] < $data['money']) {
+                echoOk(301, '总余额不足');
+            }
 
-        $add = [
-            'driver_id' => $data['id'],
-            'bank_account' => $data['bank_account'],
-            'name' => $data['name'],
-            'card_number' => $data['card_number'],
-            'money' => $data['money']
-        ];
-        $temp = $this->PostalModel->add_postal($add);
+            $add = [
+                'driver_id' => $data['id'],
+                'bank_account' => $data['bank_account'],
+                'name' => $data['name'],
+                'card_number' => $data['card_number'],
+                'money' => $data['money']
+            ];
+            $temp = $this->PostalModel->add_postal($add);
 
-        if ($temp) {
-            echoOk(200, '提现申请成功,请等待管理员审核');
-        } else {
-            echoOk(301, '提现申请失败');
+            if ($temp) {
+                echoOk(200, '提现申请成功,请等待管理员审核');
+            } else {
+                echoOk(301, '提现申请失败');
+            }
+        }else{
+            echoOk(301, '抱歉！提现申请请在上午九点到下午十点操作！');
         }
     }
-
 }

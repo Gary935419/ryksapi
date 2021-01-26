@@ -706,9 +706,11 @@ class DriverPickController extends CommonController
         if (empty($driverInfo)){
             echoOk( 301 , '数据错误' );
         }
+        $frist = mb_substr($driverInfo['name'],0,1,'utf-8');
+        $driver_name = empty($driverInfo['name'])?'':$frist;
         //发送取货码
         $orderExtendInfo = $this->OrderExtendModel->where( [ 'order_id' => $data['order_id'] ] )->find();
-        $text            = '您的物品由'.$driverInfo['name'].'师傅为您配送，车牌号码：'.$driverInfo['car_number'].',电话:'.$driverInfo['account'].',收件码：'.$orderExtendInfo['pick_up_code'].',请及时沟通，下楼到方便停车地点取货。如需送货上楼请您线下支付小费，客服电话：4000000739。';
+        $text            = '您的物品由'.$driver_name.'师傅为您配送，车牌号码：'.$driverInfo['car_number'].',电话:'.$driverInfo['account'].',收件码：'.$orderExtendInfo['pick_up_code'].',请及时沟通，下楼到方便停车地点取货。如需送货上楼请您线下支付小费，客服电话：4000000739。';
         $this->VerifyCodeModel->add_code_new($OrderTraffic['tel'], $text);
         echoOk( 200 , '提交成功' );
     }
@@ -776,6 +778,7 @@ class DriverPickController extends CommonController
             if (empty($driverInfo)){
                 echoOk( 301 , '数据错误' );
             }
+            $pricenow = floatval($driverInfo['money']) + floatval($orderInfo['order_driver_price']) + floatval($orderInfo['tip_price']);
             //信誉分处理
             if ($driverInfo['credit_num'] == 9){
                 $credit_pointsnew = floatval($driverInfo['credit_points']) + 5;
@@ -810,6 +813,7 @@ class DriverPickController extends CommonController
                     $this->UserRecommendedModel->recommended_insert($insert);
                 }
             }
+            $this->UserModel->save_info($orderInfo['driver_id'],array('money' => $pricenow));
             echoOk( 200 , '提交成功' );
 //            echoOk( 301 , json_encode($data));
         } else {

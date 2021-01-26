@@ -58,7 +58,7 @@ class DriverOrderController extends CommonController
             'limit' => $data['limit']
         ];
         switch ($data['taker_type_id']) {
-            case 1: // 专车  顺风
+            case 1: // 专车
                 $lists = $this->OrderTrafficModel->get_order_lists($con,1);
                 break;
             case 2: // 代买
@@ -67,13 +67,16 @@ class DriverOrderController extends CommonController
             case 3: // 代驾
                 $lists = $this->OrderTownModel->get_order_lists($con);
                 break;
+            case 4: // 顺路
+                $lists = $this->OrderTrafficModel->get_order_lists($con,3);
+                break;
         }
 
         echoOk(200, '获取成功', $lists);
     }
 
     /**
-     * 代驾 - 乘客上车
+     * 代驾 - 用户上车
      */
     public function line_on_car()
     {
@@ -86,7 +89,7 @@ class DriverOrderController extends CommonController
             $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '3','order_status' => '7','takeup_time' => time()));
             echoOk(200, '操作成功');
         } else {
-            echoOk(301, '该订单状态不符合乘客上车条件');
+            echoOk(301, '该订单状态不符合用户上车条件');
         }
     }
 
@@ -99,11 +102,14 @@ class DriverOrderController extends CommonController
         if (empty($data['id']) || empty($data['order_small_id'])) {
             echoOk(301, '必填项不能为空', []);
         }
+
         $order = $this->OrderTownModel->get_info($data['order_small_id']);
+        $driverInfo = $this->UserModel->get_info( $order['driver_id'] );
+        $pricenow = floatval($driverInfo['money']) + floatval($order['order_driver_price']) + floatval($order['tip_price']);
         if ($order['order_status'] == '7') {
             $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '6','order_status' => '8','complete_time' => time()));
             $this->OrderModel->order_ok( $order['big_order_id'] , $order['driver_id'] ); // 完成大单
-            $driverInfo = $this->UserModel->get_info( $order['driver_id'] );
+
             if (empty($driverInfo)){
                 echoOk( 301 , '数据错误' );
             }
@@ -140,9 +146,10 @@ class DriverOrderController extends CommonController
                     $this->UserRecommendedModel->recommended_insert($insert);
                 }
             }
+            $this->UserModel->save_info($order['driver_id'],array('money' => $pricenow));
             echoOk(200, '操作成功');
         } else {
-            echoOk(301, '该订单状态不符合乘客完成条件');
+            echoOk(301, '该订单状态不符合用户完成条件');
         }
     }
 

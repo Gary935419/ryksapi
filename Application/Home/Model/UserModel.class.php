@@ -42,7 +42,7 @@ class UserModel extends Model
             $add = [
                 'type' => $type,
                 'account' => $account,
-                'name' => $type == 1 ? '乘客' . substr($account, 7) : '',
+                'name' => $type == 1 ? '用户' . substr($account, 7) : '',
                 'head_img' => 'Public/photo_default.png',
                 'add_time' => time(),
                 'open_id' => $openId,
@@ -198,6 +198,12 @@ class UserModel extends Model
             $data['img_drivers'] = $data['img_drivers'] ? httpImg($data['img_drivers']) : '';
             $data['img_vehicle'] = $data['img_vehicle'] ? httpImg($data['img_vehicle']) : '';
             $data['img_worker'] = $data['img_worker'] ? httpImg($data['img_worker']) : '';
+            $data['img_car_user'] = $data['img_car_user'] ? httpImg($data['img_car_user']) : '';
+
+            $data['driving_img_cards_face'] = $data['driving_img_cards_face'] ? httpImg($data['driving_img_cards_face']) : '';
+            $data['driving_img_cards_side'] = $data['driving_img_cards_side'] ? httpImg($data['driving_img_cards_side']) : '';
+            $data['driving_img_drivers'] = $data['driving_img_drivers'] ? httpImg($data['driving_img_drivers']) : '';
+            $data['driving_img_worker'] = $data['driving_img_worker'] ? httpImg($data['driving_img_worker']) : '';
             return $data;
         } else {
             return '';

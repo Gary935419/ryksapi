@@ -183,7 +183,7 @@ class UserCallController extends CommonController
             empty($data['end_latitude']) || empty($data['price'])) {
             echoOk(301, '必填项不能为空');
         }
-
+        $data['price'] = sprintf("%.2f", $data['price']);
         $orderData = array();
         $orderData['status'] = 1;
         $orderData['add_time'] = time();
@@ -304,6 +304,7 @@ class UserCallController extends CommonController
             || empty($data['end_latitude']) || empty($data['price']) || empty($data['category_type'])) {
             echoOk(301, '必填项不能为空');
         }
+        $data['price'] = sprintf("%.2f", $data['price']);
         $orderData = array();
         $orderData['status'] = 1;
         $orderData['add_time'] = time();
@@ -911,20 +912,8 @@ class UserCallController extends CommonController
             //代驾订单
             $lists = $this->OrderTownModel->get_town_order_lists($con);
         } else {
-            //专车送 顺风送 代买 订单
-            if ($data['category_id'] == 1){
-                //待接单
-                $order_status = 2;
-            }elseif ($data['category_id'] == 2){
-                //已接单
-                $order_status = 3;
-            }elseif ($data['category_id'] == 3){
-                //已完成
-                $order_status = 8;
-            }else{
-                echoOk(301, '参数错误', []);
-            }
-            $con['order_status'] = $order_status;
+            //跑腿订单
+            $con['order_type'] = $data['category_id'];
             $lists = $this->OrderTrafficModel->get_trip_order_lists($con);
         }
 
@@ -1101,10 +1090,10 @@ class UserCallController extends CommonController
         $tip = empty($data['tip'])?0:$data['tip'];
         //获取保价费
         $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
-        $info['money'] = round($money,2)  + floatval($tip) + floatval($protect_price);
-        $info['money'] = 0.01;
-        $info['distance'] =floatval($distance_now) / 1000;
-        $info['tip_price'] =$tip;
+        $info['money'] = sprintf("%.2f", floatval($money) + floatval($tip) + floatval($protect_price));
+//        $info['money'] = 0.01;
+        $info['distance'] = sprintf("%.2f",floatval($distance_now) / 1000);
+        $info['tip_price'] = sprintf("%.2f",$tip);
         echoOk(200, '获取成功', $info);
     }
 

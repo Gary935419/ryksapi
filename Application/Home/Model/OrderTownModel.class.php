@@ -407,6 +407,31 @@ class OrderTownModel extends Model
                 $re[$k]['end_location'] = $v['end_location'];
                 $re[$k]['price'] = $v['price'];
                 $re[$k]['evaluate'] = $v['evaluate'];
+                switch ($v['status']){
+                    case 1:
+                        $re[$k]['status_msg'] = "待接单";
+                        break;
+                    case 2:
+                        $re[$k]['status_msg'] = "已接单";
+                        break;
+                    case 3:
+                        $re[$k]['status_msg'] = "已上车";
+                        break;
+                    case 4:
+                        $re[$k]['status_msg'] = "已开始";
+                        break;
+                    case 5:
+                        $re[$k]['status_msg'] = "已支付";
+                        break;
+                    case 6:
+                        $re[$k]['status_msg'] = "已完成";
+                        break;
+                    case 7:
+                        $re[$k]['status_msg'] = "已取消";
+                        break;
+                    default:
+                        $re[$k]['status_msg'] = "没人接";
+                }
             }
         }
         return $re;
@@ -469,15 +494,15 @@ class OrderTownModel extends Model
             $re['times']          = date( 'Y-m-d H:i:s' , $order['add_time'] );
             $re['appointment_time'] = empty($order['appointment_time'])?'':date('Y-m-d H:i:s', $order['appointment_time']);
             $re['getorder_time'] = empty($order['getorder_time'])?'':date('Y-m-d H:i:s', $order['getorder_time']);
-            $re['takegoods_time'] = empty($order['takegoods_time'])?'':date('Y-m-d H:i:s', $order['takegoods_time']);
+            $re['takeup_time'] = empty($order['takeup_time'])?'':date('Y-m-d H:i:s', $order['takeup_time']);
             $re['complete_time'] = empty($order['complete_time'])?'':date('Y-m-d H:i:s', $order['complete_time']);
             $re['status'] = $order['status'];
             $re['start_location'] = $order['start_location'];
             $re['end_location'] = $order['end_location'];
-            $re['price'] = $order['price'];
-            $re['tip_price'] = $order['tip_price'];
-            $re['preferential_price'] = $order['preferential_price'];
-            $re['distribution_km'] = $order['distribution_km'];
+            $re['price'] = sprintf("%.2f",$order['price']);
+            $re['tip_price'] = sprintf("%.2f",$order['tip_price']);
+            $re['preferential_price'] = sprintf("%.2f",$order['preferential_price']);
+            $re['distribution_km'] = sprintf("%.2f",$order['distribution_km']);
             $re['evaluate'] = empty($order['evaluate'])?'':$order['evaluate'];
             $re['user_id'] = $order['user_id'];
             $re['goods_remarks'] = $order['remarks'];
@@ -540,6 +565,8 @@ class OrderTownModel extends Model
                 $re[$k]['end_location']   = $v['end_location'];
                 $re[$k]['price']          = $v['price'];
                 $re[$k]['order_status']   = $v['order_status'];
+                $re[$k]['order_driver_price'] = $v['order_driver_price'];
+                $re[$k]['tip_price'] = $v['tip_price'];
             }
         }
         return $re;
@@ -638,7 +665,7 @@ class OrderTownModel extends Model
         $arr = array (
             1 => '待接单' ,
             2 => '待接驾' ,
-            3 => '乘客上车' ,
+            3 => '用户上车' ,
             4 => '已开始' ,
             5 => '已支付' ,
             6 => '已完成' ,
