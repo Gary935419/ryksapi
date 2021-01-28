@@ -193,17 +193,31 @@ class UserModel extends Model
         $data = $this->where($where)->find();
         if ($data) {
             $data['head_img'] = $data['head_img'] ? httpImg($data['head_img']) : '';
-            $data['img_cards_face'] = $data['img_cards_face'] ? httpImg($data['img_cards_face']) : '';
-            $data['img_cards_side'] = $data['img_cards_side'] ? httpImg($data['img_cards_side']) : '';
-            $data['img_drivers'] = $data['img_drivers'] ? httpImg($data['img_drivers']) : '';
-            $data['img_vehicle'] = $data['img_vehicle'] ? httpImg($data['img_vehicle']) : '';
-            $data['img_worker'] = $data['img_worker'] ? httpImg($data['img_worker']) : '';
-            $data['img_car_user'] = $data['img_car_user'] ? httpImg($data['img_car_user']) : '';
 
-            $data['driving_img_cards_face'] = $data['driving_img_cards_face'] ? httpImg($data['driving_img_cards_face']) : '';
-            $data['driving_img_cards_side'] = $data['driving_img_cards_side'] ? httpImg($data['driving_img_cards_side']) : '';
-            $data['driving_img_drivers'] = $data['driving_img_drivers'] ? httpImg($data['driving_img_drivers']) : '';
-            $data['driving_img_worker'] = $data['driving_img_worker'] ? httpImg($data['driving_img_worker']) : '';
+//            $data['img_cards_face'] = $data['img_cards_face'] ? httpImg($data['img_cards_face']) : '';
+//            $data['img_cards_side'] = $data['img_cards_side'] ? httpImg($data['img_cards_side']) : '';
+//            $data['img_drivers'] = $data['img_drivers'] ? httpImg($data['img_drivers']) : '';
+//            $data['img_vehicle'] = $data['img_vehicle'] ? httpImg($data['img_vehicle']) : '';
+//            $data['img_worker'] = $data['img_worker'] ? httpImg($data['img_worker']) : '';
+//            $data['img_car_user'] = $data['img_car_user'] ? httpImg($data['img_car_user']) : '';
+
+            $data['img_cards_face'] = strpos($data['img_cards_face'],'http') !== false?$data['img_cards_face']:httpImg($data['img_cards_face']);
+            $data['img_cards_side'] = strpos($data['img_cards_side'],'http') !== false?$data['img_cards_side']:httpImg($data['img_cards_side']);
+            $data['img_drivers'] = strpos($data['img_drivers'],'http') !== false?$data['img_drivers']:httpImg($data['img_drivers']);
+            $data['img_vehicle'] = strpos($data['img_vehicle'],'http') !== false?$data['img_vehicle']:httpImg($data['img_vehicle']);
+            $data['img_car_user'] = strpos($data['img_car_user'],'http') !== false?$data['img_car_user']:httpImg($data['img_worker']);
+            $data['img_worker'] = strpos($data['img_worker'],'http') !== false?$data['img_worker']:httpImg($data['img_car_user']);
+
+//            $data['driving_img_cards_face'] = $data['driving_img_cards_face'] ? httpImg($data['driving_img_cards_face']) : '';
+//            $data['driving_img_cards_side'] = $data['driving_img_cards_side'] ? httpImg($data['driving_img_cards_side']) : '';
+//            $data['driving_img_drivers'] = $data['driving_img_drivers'] ? httpImg($data['driving_img_drivers']) : '';
+//            $data['driving_img_worker'] = $data['driving_img_worker'] ? httpImg($data['driving_img_worker']) : '';
+
+            $data['driving_img_cards_face'] = strpos($data['driving_img_cards_face'],'http') !== false?$data['driving_img_cards_face']:httpImg($data['driving_img_cards_face']);
+            $data['driving_img_cards_side'] = strpos($data['driving_img_cards_side'],'http') !== false?$data['driving_img_cards_side']:httpImg($data['driving_img_cards_side']);
+            $data['driving_img_drivers'] = strpos($data['driving_img_drivers'],'http') !== false?$data['driving_img_drivers']:httpImg($data['driving_img_drivers']);
+            $data['driving_img_worker'] = strpos($data['driving_img_worker'],'http') !== false?$data['driving_img_worker']:httpImg($data['driving_img_worker']);
+
             return $data;
         } else {
             return '';

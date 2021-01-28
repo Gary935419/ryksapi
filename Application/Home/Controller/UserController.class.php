@@ -217,7 +217,80 @@ class UserController extends CommonController
             echoOk( 301 , '提交失败' );
         }
     }
+    /**
+     * 司机认证修改 后台
+     */
+    public function probate_updata()
+    {
+        $data = self::$_DATA;
 
+        //check_type 认证模式1跑腿 2代驾
+
+        if (empty( $data['img_cards_face'] ) || empty( $data['img_cards_side'] )) {
+            echoOk( 301 , '图片上传失败' );
+        } else {
+            //正面
+            $url['img_cards_face'] = $data['img_cards_face'];
+            //反面
+            $url['img_cards_side'] = $data['img_cards_side'];
+            //驾驶证
+            $url['img_drivers']    = $data['img_drivers'];
+            //行驶证
+            $url['img_vehicle']    = $data['img_vehicle'];
+            //人车合影
+            $url['img_car_user']   = $data['img_car_user'];
+            //工作照
+            $url['img_worker']     = $data['img_worker'];
+        }
+
+        if (empty( $data['id'] )) {
+            echoOk( 301 , '用户ID不能为空' );
+        }
+
+        if ($data['check_type'] == 1) {
+//          跑腿认证
+            $save_data = [
+                'sex'            => $data['sex'] ,
+                'name'           => $data['name'] ,
+                'brand'          => $data['brand'] ,
+                'cards'          => $data['cards'] ,
+                'times'          => $data['times'] ,
+                'car_number'     => $data['car_number'] ,
+                'car_type_id'    => $data['car_type_id'] ,
+                'attribute'      => $data['attribute'] ,
+                'img_cards_face' => $url['img_cards_face'] ,
+                'img_cards_side' => $url['img_cards_side'] ,
+                'img_drivers'    => $url['img_drivers'] ,
+                'img_vehicle'    => $url['img_vehicle'] ,
+                'img_car_user'   => $url['img_car_user'] ,
+                'img_worker'     => $url['img_worker'] ,
+//                'head_img'       => $url['img_worker'] ,
+                'user_check'     => 1 , //跑腿认证
+            ];
+        } else {
+            //  代驾认证
+            $save_data = [
+                'sex'                    => $data['sex'] ,
+                'driving_name'           => $data['name'] ,
+                'driving_cards'          => $data['cards'] ,
+                'driving_times'          => $data['times'] ,
+                'driving_car_number'     => $data['car_number'] ,
+                'driving_car_type_id'    => $data['car_type_id'] ,
+                'driving_attribute'      => $data['attribute'] ,
+                'driving_img_cards_face' => $url['img_cards_face'] ,
+                'driving_img_cards_side' => $url['img_cards_side'] ,
+                'driving_img_drivers'    => $url['img_drivers'] ,
+                'driving_img_worker'     => $url['img_worker'] ,
+                'driving_check'          => 1 ,//代驾认证
+            ];
+        }
+        $temp = $this->UserModel->save_info( $data['id'] , $save_data );
+        if ($temp) {
+            echoOk( 200 , '操作成功' );
+        } else {
+            echoOk( 301 , '操作失败' );
+        }
+    }
     /**
      * 修改个人资料
      */
