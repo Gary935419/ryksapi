@@ -338,6 +338,8 @@ class OrderTrafficModel extends Model
             $re['goods_name'] = $order['goods_name'];
             $re['number'] = $order['number'];
             $re['order_status'] = $order['order_status'];
+            $re['order_type'] = $order['order_type'];
+            $re['is_invoice'] = $order['is_invoice'];
             switch ($order['order_status']){
                 case 2:
                     $re['status_msg'] = "待接单";

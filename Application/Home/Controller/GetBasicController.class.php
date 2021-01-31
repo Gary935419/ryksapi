@@ -129,6 +129,22 @@ class GetBasicController extends CommonController
             $set_config = $this->SetConfigModel->get_content( 'user_mini3' );
         } elseif ($data['type'] == 3) { // 用户端 代驾
             $set_config = $this->SetConfigModel->get_content( 'user_mini4' );
+        }elseif ($data['type'] == 5) { // 用户端 个人信息保护与隐私政策及法律声明
+            $set_config = $this->SetConfigModel->get_content( 'agreement1' );
+        }elseif ($data['type'] == 6) { // 用户端 注册协议
+            $set_config = $this->SetConfigModel->get_content( 'agreement2' );
+        } elseif ($data['type'] == 7) { // 用户端 特别声明
+            $set_config = $this->SetConfigModel->get_content( 'agreement3' );
+        } elseif ($data['type'] == 8) { // 用户端 代买协议
+            $set_config = $this->SetConfigModel->get_content( 'agreement4' );
+        } elseif ($data['type'] == 9) { // 用户端 代价协议
+            $set_config = $this->SetConfigModel->get_content( 'agreement5' );
+        } elseif ($data['type'] == 10) { // 用户端 商城协议
+            $set_config = $this->SetConfigModel->get_content( 'agreement6' );
+        } elseif ($data['type'] == 11) { // 用户端 商城入驻协议
+            $set_config = $this->SetConfigModel->get_content( 'agreement7' );
+        } elseif ($data['type'] == 12) { // 用户端 计费说明
+            $set_config = $this->SetConfigModel->get_content( 'agreement8' );
         }
 
         echoOk( 200 , '获取成功' , $set_config );
@@ -169,8 +185,21 @@ class GetBasicController extends CommonController
     public function get_agreement_list()
     {
 
-        $data[] = [ 'title' => '司机服务协议' , 'url' => 'www.baidu.com' ];
-        $data[] = [ 'title' => '计费说明' , 'url' => 'www.baidu.com' ];
+        $data[] = [ 'title' => '个人信息保护与隐私政策及法律声明' , 'content' => '1' ];
+        $data[] = [ 'title' => '软件使用协议' , 'content' => '2' ];
+        $data[] = [ 'title' => '注册协议' , 'content' => '3' ];
+        $data[] = [ 'title' => '合作协议' , 'content' => '4' ];
+        $data[] = [ 'title' => '服务规则' , 'content' => '5' ];
+        $data[] = [ 'title' => '安全规则' , 'content' => '6' ];
+        $data[] = [ 'title' => '计价规则' , 'content' => '7' ];
+        $data[] = [ 'title' => '平台监督规则' , 'content' => '8' ];
+        $data[] = [ 'title' => '用户取消规则' , 'content' => '9' ];
+        $data[] = [ 'title' => '快送员取消规则' , 'content' => '10' ];
+        $data[] = [ 'title' => '司机接单不服务' , 'content' => '11' ];
+        $data[] = [ 'title' => '司机诱导取消' , 'content' => '12' ];
+        $data[] = [ 'title' => '诱导用户线下交易' , 'content' => '13' ];
+        $data[] = [ 'title' => '车辆准入标准' , 'content' => '14' ];
+        $data[] = [ 'title' => '附加费收取方式' , 'content' => '15' ];
 
         echoOk( 200 , '获取成功' , $data );
 

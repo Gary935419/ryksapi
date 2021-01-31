@@ -19,6 +19,7 @@ use Home\Model\UserWorkingModel;
 use Home\Model\OrderModel;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
+use Home\Model\OrderInvoiceModel;
 use Home\Model\OrderTrafficModel;
 use Home\Model\CouponModel;
 use Home\Model\BalanceRecordModel;
@@ -40,6 +41,7 @@ use Home\Model\BalanceRecordModel;
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTownModel $OrderTownModel
  * @property OrderTrafficModel $OrderTrafficModel
+ * @property OrderInvoiceModel $OrderInvoiceModel
  * @property CouponModel $CouponModel
  * @property RouteCityModel $RouteCityModel
  * @property BalanceRecordModel $BalanceRecordModel
@@ -62,6 +64,7 @@ class UserCallController extends CommonController
     private $OrderIntercityModel;
     private $OrderTownModel;
     private $OrderTrafficModel;
+    private $OrderInvoiceModel;
     private $CouponModel;
     private $RouteCityModel;
     private $BalanceRecordModel;
@@ -84,6 +87,7 @@ class UserCallController extends CommonController
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel = new OrderTownModel();
         $this->OrderTrafficModel = new OrderTrafficModel();
+        $this->OrderInvoiceModel = new OrderInvoiceModel();
         $this->CouponModel = new CouponModel();
         $this->RouteCityModel = new RouteCityModel();
         $this->BalanceRecordModel = new BalanceRecordModel();
@@ -170,7 +174,42 @@ class UserCallController extends CommonController
 
         echoOk(200, '正在为您叫车,请耐心等待...', $order_id);
     }
+    /**
+     * 发票申请
+     */
+    public function insert_invoice(){
+        $data = self::$_DATA;
+        if (empty($data['type']) || empty($data['id']) || empty($data['price'])) {
+            echoOk(301, '必填项不能为空');
+        }
+        $invoice = array();
+        $invoice['user_id'] = $data['user_id'];
+        $invoice['order_id'] = $data['id'];
+        $invoice['intype'] = $data['type'];
+        $invoice['add_time'] = time();
+        $invoice['price'] = sprintf("%.2f", $data['price']);
+        $invoice['tabChooseValue'] = $data['tabChooseValue'];
+        $invoice['tabChooseTypeValue'] = $data['tabChooseTypeValue'];
+        $invoice['tabChangeNameValue'] = $data['tabChangeNameValue'];
+        $invoice['tabChangeNumberValue'] = $data['tabChangeNumberValue'];
+        $invoice['tabChangeContentValue'] = $data['tabChangeContentValue'];
+        $invoice['tabChangePnameValue'] = $data['tabChangePnameValue'];
+        $invoice['tabChangeMarksValue'] = $data['tabChangeMarksValue'];
+        $invoice['tabChangePtelValue'] = $data['tabChangePtelValue'];
+        $invoice['tabChangePemailValue'] = $data['tabChangePemailValue'];
+        $invoice['tabChangePaddressValue'] = $data['tabChangePaddressValue'];
 
+        $save = [
+            'is_invoice' => 1,
+        ];
+        if ($data['type'] == 4){
+            $this->OrderTownModel->save_info($data['id'], $save);
+        }else{
+            $this->OrderTrafficModel->save_info($data['id'], $save);
+        }
+        $result = $this->OrderInvoiceModel->add($invoice);
+        echoOk(200, '操作成功', $result);
+    }
     /**
      * 下单处理 代驾订单
      */

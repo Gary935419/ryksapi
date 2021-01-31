@@ -85,11 +85,32 @@ class DriverOrderController extends CommonController
             echoOk(301, '必填项不能为空', []);
         }
         $order = $this->OrderTownModel->get_info($data['order_small_id']);
-        if ($order['status'] == '4' && $order['order_status'] == '4') {
-            $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '3','order_status' => '7','takeup_time' => time()));
-            echoOk(200, '操作成功');
-        } else {
-            echoOk(301, '该订单状态不符合用户上车条件');
+        if($order['appointment_time'] < time()){
+            $dalay_s = floatval(time()) - floatval($order['appointment_time']);
+            //延时分钟
+            $delay_time = floatval($dalay_s) / 60;
+            //延时计算单位价格
+            $delay_num = 0.1;
+            //状态修正  0：未支付 1：已支付 2：未生效
+            $delay_state = 0;
+            //延时费
+            $delay_price = floatval($delay_time) * floatval($delay_num);
+            //延时支付订单号
+            $delay_number = "PAYD".time().$data['id'];
+            //超时处理
+            if ($order['status'] == '4' && $order['order_status'] == '4') {
+                $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('delay_number' => $delay_number,'delay_price' => $delay_price,'delay_state' => $delay_state,'delay_num' => $delay_num,'delay_time' => $delay_time,'status' => '3','order_status' => '7','takeup_time' => time()));
+                echoOk(200, '操作成功');
+            } else {
+                echoOk(301, '该订单状态不符合用户上车条件');
+            }
+        }else{
+            if ($order['status'] == '4' && $order['order_status'] == '4') {
+                $this->OrderTownModel->where('id = "' . $data['order_small_id'] . '"')->save(array('status' => '3','order_status' => '7','takeup_time' => time()));
+                echoOk(200, '操作成功');
+            } else {
+                echoOk(301, '该订单状态不符合用户上车条件');
+            }
         }
     }
 
