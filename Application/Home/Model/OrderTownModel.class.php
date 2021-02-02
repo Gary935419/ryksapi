@@ -510,6 +510,18 @@ class OrderTownModel extends Model
             $re['order_status'] = $order['order_status'];
             $re['order_type'] = $order['order_type'];
             $re['is_invoice'] = $order['is_invoice'];
+            $re['delay_price'] = empty($order['delay_price'])?'未生效':$order['delay_price'];
+            $re['delay_state'] = $order['delay_state'];
+            if ($order['delay_state'] == 1){
+                $re['delay_state1'] = "已支付";
+            }elseif ($order['delay_state'] == 2){
+                $re['delay_state1'] = "未生效";
+            }else{
+                $re['delay_state1'] = "未支付";
+            }
+            $re['delay_num'] = $order['delay_num'];
+            $re['delay_time'] = empty($order['delay_time'])?'未生效':date( 'Y-m-d H:i:s' , $order['delay_time'] );
+            $re['delay_number'] = $order['delay_number'];
             switch ($order['status']){
                 case 1:
                     $re['status_msg'] = "待接单";

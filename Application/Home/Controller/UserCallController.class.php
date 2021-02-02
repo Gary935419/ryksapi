@@ -873,7 +873,90 @@ class UserCallController extends CommonController
 
         echoOk(200, '操作成功', $re);
     }
+    public function traffic_order_pay_new()
+    {
+        $data = self::$_DATA;
 
+        if (empty($data['order_id'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+
+
+        $orderInfo = $this->OrderTownModel->where('id = '. $data['order_id'])->find();
+        if (!$orderInfo) {
+            echoOk(301, '订单错误', []);
+        }
+
+        $number = $orderInfo['delay_number'];
+        $userInfo = $this->UserModel->where('id = ' . $orderInfo['user_id'])->find();
+        $openid = $userInfo['open_id'];
+
+        $appid = 'wx95ff8ddda8027413';
+        $key = "Nruyoukuaisong152326197512071176";
+        $mch_id = "1580673321";
+
+//        $openid = "osb5a5EK208TUOfOfHWS-zEgEmRE";
+
+        $money = $orderInfo['delay_price'];
+
+        $orderCode = $number;   //  订单号
+//        随机字符串
+        $str = "QWERTYUIPADGHJKLZXCVNM1234567890";
+        $nonce = str_shuffle($str);
+
+        $pay['appid'] = $appid;
+        $pay['body'] = '超时订单支付';               //商品描述
+        $pay['mch_id'] = $mch_id;            //商户号
+        $pay['nonce_str'] = $nonce;        //随机字符串
+        $pay['notify_url'] = 'http://ryks.ychlkj.cn/index.php/Home/PayRe/Wx_notify_url_new';
+        $pay['openid'] = $openid;
+        $pay['out_trade_no'] = $orderCode;       //订单号
+        $pay['spbill_create_ip'] = $_SERVER['SERVER_ADDR']; // 终端IP
+        $pay['total_fee'] = 100 * $money; //支付金额
+        $pay['trade_type'] = 'JSAPI';    //交易类型
+//        组建签名（不可换行 空格  否则哭吧）
+        $stringA = "appid=" . $pay['appid'] . "&body=" . $pay['body'] . "&mch_id=" . $pay['mch_id'] . "&nonce_str=" . $pay['nonce_str'] . "&notify_url=" . $pay['notify_url'] . "&openid=" . $pay['openid'] . "&out_trade_no=" . $pay['out_trade_no'] . "&spbill_create_ip=" . $pay['spbill_create_ip'] . "&total_fee=" . $pay['total_fee'] . "&trade_type=" . $pay['trade_type'];
+        $stringSignTemp = $stringA . "&key=" . $key; //注：key为商户平台设置的密钥key(这个还需要再确认一下)
+        $sign = strtoupper(md5($stringSignTemp)); //注：MD5签名方式
+        $pay['sign'] = $sign;              //签名
+//        统一下单请求
+        $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+
+        $data = $this->arrayToXml($pay);
+        $res = $this->wxpost($url, $data);
+//        对 统一下单返回得参数进行处理
+        $pay_arr = $this->xmlToArray($res);  //这里是数组
+
+        if ($pay_arr['return_code'] == 'FAIL' || $pay_arr['result_code'] == 'FAIL') {
+            echo json_encode($res);
+            exit;
+        }
+//        调起支付数据签名字段
+        $timeStamp = time();
+        $nonce_pay = str_shuffle($str);
+        $package = $pay_arr['prepay_id'];
+        $signType = "MD5";
+        $stringPay = "appId=" . $appid . "&nonceStr=" . $nonce_pay . "&package=prepay_id=" . $package . "&signType=" . $signType . "&timeStamp=" . $timeStamp . "&key=" . $key;
+        $paySign = strtoupper(md5($stringPay));
+        $rpay['timeStamp'] = (string)$timeStamp;
+        $rpay['nonceStr'] = $nonce_pay;
+        $rpay['_package'] = "prepay_id=" . $package;
+        $rpay['signType'] = $signType;
+        $rpay['paySign'] = $paySign;
+        $rpay['orders'] = $orderCode;
+
+        $weixin_sign = [
+            'order_no' => $number,
+            'money' => $money,
+            'app_request' => $rpay,
+        ];
+
+        $re = [
+            'weixin_sign' => $weixin_sign ? $weixin_sign : (object)[],
+        ];
+
+        echoOk(200, '操作成功', $re);
+    }
     /**
      * 评价订单
      */

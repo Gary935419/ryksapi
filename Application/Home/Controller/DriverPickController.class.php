@@ -285,6 +285,10 @@ class DriverPickController extends CommonController
         if ($driverInfo['credit_points'] < 20){
             echoOk( 301 , '信誉分低于20分、不可接单，请您联系客服处理分数问题！' );
         }
+        $orderInfotowndelay = $this->OrderTownModel->where( [ 'delay_state' => 0 , 'user_id' => $data['id']] )->find();
+        if (!empty($orderInfotowndelay)){
+            echoOk( 301 , '您当前有未支付的超时订单，请先去支付！' );
+        }
         switch ($data['handle']) {
             case 1: // 接单
                 sleep( 0.5 );

@@ -77,10 +77,10 @@ class UserController extends CommonController
             }
             $user_id = $this->UserModel->is_account( $data['type'] , $data['account'] , $openId ); // 登录
             if ($user_id) {
-                echoOk( 200 , '登录成功' , $user_id );
+                echoOk( 200 , '登录成功啦' , $user_id );
             }
             $user_id = $this->UserModel->user_register( '1' , $data['account'] , $openId ); // 注册
-            echoOk( 200 , '登录成功' , $user_id );
+            echoOk( 200 , '登录成功啦' , $user_id );
         } elseif ($data['type'] == 2) { // 司机端
             $user_id = $this->UserModel->is_account( $data['type'] , $data['account'] ); // 登录
             if ($user_id) {
