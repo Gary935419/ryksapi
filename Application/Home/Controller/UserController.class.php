@@ -88,6 +88,14 @@ class UserController extends CommonController
             }
             $user_id = $this->UserModel->user_register( '2' , $data['account'] ,''); // 注册
             echoOk( 200 , '登录成功' , $user_id );
+        } elseif ($data['type'] == 3){
+            // 用户端
+            $user_id = $this->UserModel->is_account( '1' , $data['account'] ); // 登录
+            if ($user_id) {
+                echoOk( 200 , '登录成功' , $user_id );
+            }
+            $user_id = $this->UserModel->user_register( '1' , $data['account'] ,''); // 注册
+            echoOk( 200 , '登录成功' , $user_id );
         }
     }
 
@@ -439,6 +447,16 @@ class UserController extends CommonController
             echoOk( 301 , '订单已经报备了,请重新选择!' );
         }
 
+        $imgInfo = uploadImg( '' );
+        if (empty($imgInfo['image1']) || empty($imgInfo['image2']) || empty($imgInfo['image3'])) {
+            echoOk( 301 , '请上传完整三张图片。' );
+        } else {
+            $complaintData['image1'] = $imgInfo['image1']['path'];
+            $complaintData['image1'] = $imgInfo['image1']['path'];
+            $complaintData['image1'] = $imgInfo['image1']['path'];
+        }
+
+        $complaintData['lable']    = empty($data['lable'])?'暂无选择':$data['lable'];
         $complaintData['uid']      = $data['id'];
         $complaintData['order_id'] = $data['orderId'];
         $complaintData['content']  = $data['content'];

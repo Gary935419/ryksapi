@@ -74,6 +74,7 @@ class UserBalanceController extends CommonController {
                 echoOk(301, '总余额不足');
             }
 
+            $money_new = floatval($user['money']) - floatval($data['money']);
             $add = [
                 'driver_id' => $data['id'],
                 'bank_account' => $data['bank_account'],
@@ -84,6 +85,10 @@ class UserBalanceController extends CommonController {
             $temp = $this->PostalModel->add_postal($add);
 
             if ($temp) {
+                $save_data = [
+                    'money'                    => $money_new ,
+                ];
+                $this->UserModel->save_info( $data['id'] , $save_data );
                 echoOk(200, '提现申请成功,请等待管理员审核');
             } else {
                 echoOk(301, '提现申请失败');
