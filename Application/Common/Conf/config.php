@@ -5,8 +5,7 @@ return array(
     'DB_HOST'               =>  '127.0.0.1', // 服务器地址
     'DB_NAME'               =>  'ryks', // 数据库名
     'DB_USER'               =>  'root', // 用户名
-    'DB_PWD'                =>  'root', // 密码
-//    'DB_PWD'                =>  '1216568dc847d210', // 密码
+    'DB_PWD'                =>  'e39a3e0d7d270b15', // 密码
     'DB_PORT'               =>  '3306', // 端口
     'DB_PREFIX'             =>  '', // 数据库表前缀
     'DB_FIELDTYPE_CHECK'    =>  false, // 是否进行字段类型检查
@@ -35,8 +34,8 @@ return array(
     'sj_push_Secret'		=>  'a2b60ae4b4e0df278f042758', // 如邮快送司机 Master Secret
 
 //	'web_address'			=>	'http://192.168.110.83/',
-	'web_address'			=>	'http://www.rysas.com/',
-	'admin_address'			=>	'http://www.rysas.com/index.php/Admin/',
+	'web_address'			=>	'http://ryks.ychlkj.cn/',
+	'admin_address'			=>	'http://ryks.ychlkj.cn/index.php/Admin/',
 //	'admin_address'			=>	'http://rysy.demo.dlshangcai.com/index.php/Admin/',
 //	'admin_address'			=>	'http://192.168.110.83/index.php/Admin/',
 	'upload_path'			=>	'Public/images',

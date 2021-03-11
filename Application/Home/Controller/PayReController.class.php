@@ -38,7 +38,7 @@ class PayReController extends Controller
     }
 
     /**
-     * 微信支付回调
+     * 微信支付回调 app下单
      */
     public function wxpay()
     {
@@ -46,79 +46,158 @@ class PayReController extends Controller
         $xml = simplexml_load_string($request_body, 'SimpleXMLElement', LIBXML_NOCDATA);
 
         if (strval($xml->return_code) == 'SUCCESS' && strval($xml->out_trade_no)) {
-            $OrderIntercityModel = new \Home\Model\OrderIntercityModel();
-            $where['number'] = array('eq', $xml->out_trade_no);
-            $order = $OrderIntercityModel->where($where)->find();
-
-            if ($order) {
-                // 判断该订单是否已经支付成功
-                if (!($order['status'] == '5')) {
-                    $money = $order['price'] - $order['coupon'];
-
-                    $CouponModel = new \Home\Model\CouponModel();
-                    if (!empty($order['coupon_id'])) {
-                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
-                    }
-
-                    $this->OrderModel->pay_success($xml->out_trade_no);
-                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-
-                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-                }
-            } else {
-                // 判断该订单是否已经支付成功
-                if (!($order['status'] == '5')) {
-                    $OrderTownModel = new \Home\Model\OrderTownModel();
-                    $order = $OrderTownModel->where($where)->find();
-                    $money = $order['price'];
-
-                    $this->OrderModel->pay_success($xml->out_trade_no);
-                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-
-                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-                }
+            $ordernumber = array('eq', $xml->out_trade_no);
+            $pay_numberWhere['pay_number'] =$ordernumber;
+            $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
+            $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
+            $save = [
+                'order_status' => 2,
+                'pay_type' => 1,
+            ];
+            if ($bigOrderInfo['order_type'] == 4){
+                $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
+                $this->OrderTownModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send($orderInfo['id']);
+            }else{
+                $orderInfo = $this->OrderTrafficModel->where($orderInfoWhere)->find();
+                $this->OrderTrafficModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send_new($orderInfo['id']);
             }
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+
+//            if ($order) {
+//                // 判断该订单是否已经支付成功
+//                if (!($order['status'] == '5')) {
+//                    $money = $order['price'] - $order['coupon'];
+//
+//                    $CouponModel = new \Home\Model\CouponModel();
+//                    if (!empty($order['coupon_id'])) {
+//                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
+//                    }
+//
+//                    $this->OrderModel->pay_success($xml->out_trade_no);
+//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
+//
+//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+//                }
+//            } else {
+//                // 判断该订单是否已经支付成功
+//                if (!($order['status'] == '5')) {
+//                    $OrderTownModel = new \Home\Model\OrderTownModel();
+//                    $order = $OrderTownModel->where($where)->find();
+//                    $money = $order['price'];
+//
+//                    $this->OrderModel->pay_success($xml->out_trade_no);
+//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
+//
+//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+//                }
+//            }
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
         }
     }
-
     /**
-     * 支付宝回调
+     * 支付宝回调 app下单
      */
     public function alipay()
     {
         if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
-            $OrderIntercityModel = new \Home\Model\OrderIntercityModel();
-            $where['number'] = array('eq', I('out_trade_no'));
-            $order = $OrderIntercityModel->where($where)->find();
-
-            if ($order) {
-                // 判断该订单是否已经支付成功
-                if (!($order['status'] == '5')) {
-                    $money = $order['price'] - $order['coupon'];
-
-                    $CouponModel = new \Home\Model\CouponModel();
-                    if (!empty($order['coupon_id'])) {
-                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
-                    }
-
-                    $this->OrderModel->pay_success(I('out_trade_no'));
-                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-
-                    echo 'success';
-                }
-            } else {
-                // 判断该订单是否已经支付成功
-                if (!($order['status'] == '5')) {
-                    $OrderTownModel = new \Home\Model\OrderTownModel();
-                    $order = $OrderTownModel->where($where)->find();
-                    $money = $order['price'];
-
-                    $this->OrderModel->pay_success(I('out_trade_no'));
-                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-
-                    echo 'success';
-                }
+            $ordernumber = array('eq', I('out_trade_no'));
+            $pay_numberWhere['pay_number'] =$ordernumber;
+            $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
+            $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
+            $save = [
+                'order_status' => 2,
+                'pay_type' => 2,
+            ];
+            if ($bigOrderInfo['order_type'] == 4){
+                $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
+                $this->OrderTownModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send($orderInfo['id']);
+            }else{
+                $orderInfo = $this->OrderTrafficModel->where($orderInfoWhere)->find();
+                $this->OrderTrafficModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send_new($orderInfo['id']);
             }
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
+        }
+    }
+
+    /**
+     * 微信支付回调 app超时
+     */
+    public function wxpay_new()
+    {
+        $request_body = file_get_contents("php://input");
+        $xml = simplexml_load_string($request_body, 'SimpleXMLElement', LIBXML_NOCDATA);
+
+        if (strval($xml->return_code) == 'SUCCESS' && strval($xml->out_trade_no)) {
+            $ordernumber = array('eq', $xml->out_trade_no);
+            $pay_numberWhere['delay_number'] =$ordernumber;
+            $save = [
+                'delay_state' => 1,
+                'pay_type_new' => 1,
+            ];
+            $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
+            $this->OrderTownModel->save_info($orderInfo['id'], $save);
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+
+//            if ($order) {
+//                // 判断该订单是否已经支付成功
+//                if (!($order['status'] == '5')) {
+//                    $money = $order['price'] - $order['coupon'];
+//
+//                    $CouponModel = new \Home\Model\CouponModel();
+//                    if (!empty($order['coupon_id'])) {
+//                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
+//                    }
+//
+//                    $this->OrderModel->pay_success($xml->out_trade_no);
+//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
+//
+//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+//                }
+//            } else {
+//                // 判断该订单是否已经支付成功
+//                if (!($order['status'] == '5')) {
+//                    $OrderTownModel = new \Home\Model\OrderTownModel();
+//                    $order = $OrderTownModel->where($where)->find();
+//                    $money = $order['price'];
+//
+//                    $this->OrderModel->pay_success($xml->out_trade_no);
+//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
+//
+//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+//                }
+//            }
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
+        }
+    }
+    /**
+     * 支付宝回调 app超时
+     */
+    public function alipay_new()
+    {
+        if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
+            $ordernumber = array('eq', I('out_trade_no'));
+            $pay_numberWhere['delay_number'] =$ordernumber;
+            $save = [
+                'delay_state' => 1,
+                'pay_type_new' => 2,
+            ];
+            $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
+            $this->OrderTownModel->save_info($orderInfo['id'], $save);
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
         }
     }
 
@@ -160,6 +239,7 @@ class PayReController extends Controller
             $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
             $save = [
                 'order_status' => 2,
+                'pay_type' => 1,
             ];
             if ($bigOrderInfo['order_type'] == 4){
                 $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
@@ -200,6 +280,7 @@ class PayReController extends Controller
             $pay_numberWhere['delay_number'] =$ordernumber;
             $save = [
                 'delay_state' => 1,
+                'pay_type_new' => 1,
             ];
             $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
             $this->OrderTownModel->save_info($orderInfo['id'], $save);

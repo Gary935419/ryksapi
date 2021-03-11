@@ -110,6 +110,7 @@ class WxPay{
     {
         vendor("wxpay.lib.WxPay#Api");
         self::$NOTIFY_URL = C('web_address').'index.php/Home/PayRe/wxpay';
+        self::$NOTIFY_URL_NEW = C('web_address').'index.php/Home/PayRe/wxpay_new';
     }
 
     /**
@@ -142,7 +143,27 @@ class WxPay{
 
         return $result;
     }
+    public function payOrderNew($order_no, $txnTime, $txnAmt){
+        $input = new WxPayUnifiedOrder();
+        $input->SetBody($order_no);
+        $input->SetAttach("");
+        $input->SetOut_trade_no($order_no);
+        $input->SetTotal_fee($txnAmt);
+        $input->SetTime_start($txnTime);
+        $input->SetTime_expire(date("YmdHis", strtotime($txnTime) + 600));
+        $input->SetNotify_url(self::$NOTIFY_URL_NEW);
+        $input->SetTrade_type("APP");
 
+        $result = WxPayApi::unifiedOrder($input);
+        if($result['return_code']!="SUCCESS"){
+            throw new \Exception($result['return_msg']);
+        }
+        if($result['result_code']!="SUCCESS"){
+            throw new \Exception($result['err_code_des']);
+        }
+
+        return $result;
+    }
     /**
      * 获取APP端的请求参数
      * @param $prepayId

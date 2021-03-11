@@ -702,85 +702,175 @@ class UserCallController extends CommonController
     }
 
     /**
-     * 确认支付
+     * 确认支付（app下单）
      */
-//    public function pay()
-//    {
-//        $data = self::$_DATA;
-//
-//        if (empty($data['taker_type_id']) || empty($data['order_small_id']) || empty($data['pay_type'])) {
-//            echoOk(301, '必填项不能为空', []);
-//        }
-//
-//        switch ($data['taker_type_id']) {
-//            case 1: // 城际拼车
-//                $number = $this->OrderIntercityModel->pay($data['order_small_id']);
-//                $order = $this->OrderIntercityModel->get_info($data['order_small_id']);
-//
-//                // 判断该订单是否已支付
-//                if ($order['status'] == '5') {
-//                    echoOk(301, '该订单已支付');
-//                }
-//
-//                $money = $order['price'] - $order['coupon'];
-//                $money = (ceil($money * 1000)) / 1000;
-//                break;
-//            case 2: // 市区出行
-//                $number = $this->OrderTownModel->pay($data['order_small_id']);
-//                $order = $this->OrderTownModel->get_info($data['order_small_id']);
-//
-//                // 判断该订单是否已支付
-//                if ($order['status'] == '5' || $order['status'] == '6') {
-//                    echoOk(301, '该订单已支付或已完成');
-//                }
-//
-//                $money = $order['price'];
-//                break;
-//            case 3: // 同城货运
-//                break;
-//        }
-//
-//        switch ($data['pay_type']) {
-//            case 1: // 支付宝
-//                $aliPay = new \aliPay();
-//                $alipay_sign = $aliPay->getRequestParam($number, $money, 'Home/PayRe/alipay'); // 生成签名
-//                break;
-//            case 2: // 微信
-//                $wxPay = new \WxPay();
-//                $txnAmt = intval($money * 100);
-//                $txnTime = date("YmdHis");
-//                $result = $wxPay->payOrder($number, $txnTime, $txnAmt);
-//                $appRequest = $wxPay->getAppRequest($result['prepay_id']);
-//                $appRequest['_package'] = $appRequest['package'];
-//                unset($appRequest['package']);
-//                $weixin_sign = [
-//                    'order_no' => $number,
-//                    'prepay_id' => $result['prepay_id'],
-//                    'money' => $txnAmt,
-//                    'txntime' => $txnTime,
-//                    'app_request' => $appRequest,
-//                ];
-//                break;
-//            case 3: // 现金
-//                $this->OrderModel->pay_success($number);
-//                break;
-//        }
-//
-//        // 积分
+    public function pay()
+    {
+        $data = self::$_DATA;
+
+        if (empty($data['order_id']) || empty($data['pay_type'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+        $bigOrderInfo  =  $this->OrderModel->where('id = '.$data['order_id'])->find();
+        if ($bigOrderInfo['order_type'] == 4){
+            $orderInfo = $this->OrderTownModel->where('big_order_id = '. $data['order_id'])->find();
+            if (!$orderInfo) {
+                echoOk(301, '订单错误', []);
+            }
+            // 判断该订单是否已支付
+            if ($orderInfo['order_status'] == 2) {
+                echoOk(301, '该订单已支付');
+            }
+        }else{
+            $orderInfo = $this->OrderTrafficModel->where('big_order_id = '. $data['order_id'])->find();
+            if (!$orderInfo) {
+                echoOk(301, '订单错误', []);
+            }
+            // 判断该订单是否已支付
+            if ($orderInfo['order_status'] == 2) {
+                echoOk(301, '该订单已支付');
+            }
+        }
+        $number = $bigOrderInfo['pay_number'];
+        $money = $orderInfo['price'];
+
+        switch ($data['pay_type']) {
+            case 1: // 支付宝
+                $aliPay = new \aliPay();
+                $alipay_sign = $aliPay->getRequestParam($number, $money, 'Home/PayRe/alipay'); // 生成签名
+                break;
+            case 2: // 微信
+                $wxPay = new \WxPay();
+                $txnAmt = intval($money * 100);
+                $txnTime = date("YmdHis");
+                $result = $wxPay->payOrder($number, $txnTime, $txnAmt);
+                $appRequest = $wxPay->getAppRequest($result['prepay_id']);
+                $appRequest['_package'] = $appRequest['package'];
+                unset($appRequest['package']);
+                $weixin_sign = [
+                    'order_no' => $number,
+                    'prepay_id' => $result['prepay_id'],
+                    'money' => $txnAmt,
+                    'txntime' => $txnTime,
+                    'app_request' => $appRequest,
+                ];
+                break;
+            case 3: // 余额
+                $user = $this->UserModel->get_info($bigOrderInfo['user_id']);
+                if ($user['money'] < $money) {
+                    echoOk(301, '余额不足');
+                }
+                $money_new = floatval($user['money']) - floatval($money);
+                $pay_numberWhere['pay_number'] =$number;
+                $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
+                $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
+                $save = [
+                    'order_status' => 2,
+                    'pay_type' => 3,
+                ];
+                if ($bigOrderInfo['order_type'] == 4){
+                    $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
+                    $this->OrderTownModel->save_info($orderInfo['id'], $save);
+                    //叫车
+                    $this->OrderTownModel->online_send($orderInfo['id']);
+                }else{
+                    $orderInfo = $this->OrderTrafficModel->where($orderInfoWhere)->find();
+                    $this->OrderTrafficModel->save_info($orderInfo['id'], $save);
+                    //叫车
+                    $this->OrderTownModel->online_send_new($orderInfo['id']);
+                }
+                $save_data = [
+                    'money'                    => $money_new ,
+                ];
+                $this->UserModel->save_info($bigOrderInfo['user_id'],$save_data);
+                break;
+        }
+
+        // 积分
 //        $user = $this->UserModel->get_info($order['user_id']);
 //        $this->UserModel->save_info($order['user_id'], ['integral' => $user['integral'] + intval($money)]);
-//
-//        $re = [
-//            'alipay_sign' => $alipay_sign ? $alipay_sign : '',
-//            'weixin_sign' => $weixin_sign ? $weixin_sign : (object)[],
-//        ];
-//
-//        echoOk(200, '操作成功', $re);
-//    }
 
+        $re = [
+            'alipay_sign' => $alipay_sign ? $alipay_sign : '',
+            'weixin_sign' => $weixin_sign ? $weixin_sign : (object)[],
+        ];
 
+        echoOk(200, '操作成功', $re);
+    }
     /**
-     * 确认支付
+     * 确认支付（app超时下单）
+     */
+    public function pay_new()
+    {
+        $data = self::$_DATA;
+
+        if (empty($data['order_id'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+
+
+        $orderInfo = $this->OrderTownModel->where('id = '. $data['order_id'])->find();
+        if (!$orderInfo) {
+            echoOk(301, '订单错误', []);
+        }
+
+        $number = $orderInfo['delay_number'];
+        $money = $orderInfo['delay_price'];
+
+        switch ($data['pay_type']) {
+            case 1: // 支付宝
+                $aliPay = new \aliPay();
+                $alipay_sign = $aliPay->getRequestParam($number, $money, 'Home/PayRe/alipay_new'); // 生成签名
+                break;
+            case 2: // 微信
+                $wxPay = new \WxPay();
+                $txnAmt = intval($money * 100);
+                $txnTime = date("YmdHis");
+                $result = $wxPay->payOrderNew($number, $txnTime, $txnAmt);
+                $appRequest = $wxPay->getAppRequest($result['prepay_id']);
+                $appRequest['_package'] = $appRequest['package'];
+                unset($appRequest['package']);
+                $weixin_sign = [
+                    'order_no' => $number,
+                    'prepay_id' => $result['prepay_id'],
+                    'money' => $txnAmt,
+                    'txntime' => $txnTime,
+                    'app_request' => $appRequest,
+                ];
+                break;
+            case 3: // 余额
+                $user = $this->UserModel->get_info($orderInfo['user_id']);
+                if ($user['money'] < $money) {
+                    echoOk(301, '余额不足');
+                }
+                $money_new = floatval($user['money']) - floatval($money);
+                $pay_numberWhere['delay_number'] =$number;
+                $save = [
+                    'delay_state' => 1,
+                    'pay_type_new' => 3,
+                ];
+                $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
+                $this->OrderTownModel->save_info($orderInfo['id'], $save);
+                $save_data = [
+                    'money'                    => $money_new ,
+                ];
+                $this->UserModel->save_info($orderInfo['user_id'],$save_data);
+                break;
+        }
+
+        // 积分
+//        $user = $this->UserModel->get_info($order['user_id']);
+//        $this->UserModel->save_info($order['user_id'], ['integral' => $user['integral'] + intval($money)]);
+
+        $re = [
+            'alipay_sign' => $alipay_sign ? $alipay_sign : '',
+            'weixin_sign' => $weixin_sign ? $weixin_sign : (object)[],
+        ];
+
+        echoOk(200, '操作成功', $re);
+    }
+    /**
+     * 确认支付(小程序下单)
      */
     public function traffic_order_pay()
     {
@@ -873,6 +963,9 @@ class UserCallController extends CommonController
 
         echoOk(200, '操作成功', $re);
     }
+    /**
+     * 确认支付(小程序超时下单)
+     */
     public function traffic_order_pay_new()
     {
         $data = self::$_DATA;
@@ -1213,7 +1306,7 @@ class UserCallController extends CommonController
         //获取保价费
         $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
         $info['money'] = sprintf("%.2f", floatval($money) + floatval($tip) + floatval($protect_price));
-//        $info['money'] = 0.01;
+        $info['money'] = 0.01;
         $info['distance'] = sprintf("%.2f",floatval($distance_now) / 1000);
         $info['tip_price'] = sprintf("%.2f",$tip);
         echoOk(200, '获取成功', $info);
