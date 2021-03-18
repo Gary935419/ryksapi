@@ -17,6 +17,7 @@ use Home\Model\RouteCityModel;
 use Home\Model\UserModel;
 use Home\Model\UserWorkingModel;
 use Home\Model\OrderModel;
+use Home\Model\TopupModel;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
 use Home\Model\OrderInvoiceModel;
@@ -38,6 +39,7 @@ use Home\Model\BalanceRecordModel;
  * @property UserModel $UserModel
  * @property UserWorkingModel $UserWorkingModel
  * @property OrderModel $OrderModel
+ * @property TopupModel $TopupModel
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTownModel $OrderTownModel
  * @property OrderTrafficModel $OrderTrafficModel
@@ -61,6 +63,7 @@ class UserCallController extends CommonController
     private $UserModel;
     private $UserWorkingModel;
     private $OrderModel;
+    private $TopupModel;
     private $OrderIntercityModel;
     private $OrderTownModel;
     private $OrderTrafficModel;
@@ -84,6 +87,7 @@ class UserCallController extends CommonController
         $this->UserModel = new UserModel();
         $this->UserWorkingModel = new UserWorkingModel();
         $this->OrderModel = new OrderModel();
+        $this->TopupModel = new TopupModel();
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel = new OrderTownModel();
         $this->OrderTrafficModel = new OrderTrafficModel();
@@ -1050,6 +1054,97 @@ class UserCallController extends CommonController
 
         echoOk(200, '操作成功', $re);
     }
+
+    /**
+     * 小程序充值
+     */
+    public function topup_treatment()
+    {
+        $data = self::$_DATA;
+
+        if (empty($data['user_id']) || empty($data['money'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+
+        $orderData = array();
+        $orderData['status'] = 0;
+        $orderData['addtime'] = time();
+        $orderData['money'] = $data['money'];
+        $orderData['uid'] = $data['user_id'];
+        $orderData['paynumber'] = "PAY".time().$data['user_id'];
+        $order_id = $this->TopupModel->add($orderData);
+
+
+        $number = $orderData['paynumber'];
+        $userInfo = $this->UserModel->where('id = ' . $data['user_id'])->find();
+        $openid = $userInfo['open_id'];
+
+        $appid = 'wx95ff8ddda8027413';
+        $key = "Nruyoukuaisong152326197512071176";
+        $mch_id = "1580673321";
+
+//        $openid = "osb5a5EK208TUOfOfHWS-zEgEmRE";
+
+        $money = $data['money'];
+
+        $orderCode = $number;   //  订单号
+//        随机字符串
+        $str = "QWERTYUIPADGHJKLZXCVNM1234567890";
+        $nonce = str_shuffle($str);
+
+        $pay['appid'] = $appid;
+        $pay['body'] = '订单支付';               //商品描述
+        $pay['mch_id'] = $mch_id;            //商户号
+        $pay['nonce_str'] = $nonce;        //随机字符串
+        $pay['notify_url'] = 'http://ryks.ychlkj.cn/index.php/Home/PayRe/topup_treatment';
+        $pay['openid'] = $openid;
+        $pay['out_trade_no'] = $orderCode;       //订单号
+        $pay['spbill_create_ip'] = $_SERVER['SERVER_ADDR']; // 终端IP
+        $pay['total_fee'] = 100 * $money; //支付金额
+        $pay['trade_type'] = 'JSAPI';    //交易类型
+//        组建签名（不可换行 空格  否则哭吧）
+        $stringA = "appid=" . $pay['appid'] . "&body=" . $pay['body'] . "&mch_id=" . $pay['mch_id'] . "&nonce_str=" . $pay['nonce_str'] . "&notify_url=" . $pay['notify_url'] . "&openid=" . $pay['openid'] . "&out_trade_no=" . $pay['out_trade_no'] . "&spbill_create_ip=" . $pay['spbill_create_ip'] . "&total_fee=" . $pay['total_fee'] . "&trade_type=" . $pay['trade_type'];
+        $stringSignTemp = $stringA . "&key=" . $key; //注：key为商户平台设置的密钥key(这个还需要再确认一下)
+        $sign = strtoupper(md5($stringSignTemp)); //注：MD5签名方式
+        $pay['sign'] = $sign;              //签名
+//        统一下单请求
+        $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+        $data = $this->arrayToXml($pay);
+        $res = $this->wxpost($url, $data);
+//        对 统一下单返回得参数进行处理
+        $pay_arr = $this->xmlToArray($res);  //这里是数组
+
+        if ($pay_arr['return_code'] == 'FAIL' || $pay_arr['result_code'] == 'FAIL') {
+            echo json_encode($res);
+            exit;
+        }
+//        调起支付数据签名字段
+        $timeStamp = time();
+        $nonce_pay = str_shuffle($str);
+        $package = $pay_arr['prepay_id'];
+        $signType = "MD5";
+        $stringPay = "appId=" . $appid . "&nonceStr=" . $nonce_pay . "&package=prepay_id=" . $package . "&signType=" . $signType . "&timeStamp=" . $timeStamp . "&key=" . $key;
+        $paySign = strtoupper(md5($stringPay));
+        $rpay['timeStamp'] = (string)$timeStamp;
+        $rpay['nonceStr'] = $nonce_pay;
+        $rpay['_package'] = "prepay_id=" . $package;
+        $rpay['signType'] = $signType;
+        $rpay['paySign'] = $paySign;
+        $rpay['orders'] = $orderCode;
+
+        $weixin_sign = [
+            'order_no' => $number,
+            'money' => $money,
+            'app_request' => $rpay,
+        ];
+
+        $re = [
+            'weixin_sign' => $weixin_sign ? $weixin_sign : (object)[],
+        ];
+
+        echoOk(200, '操作成功', $re);
+    }
+
     /**
      * 评价订单
      */
