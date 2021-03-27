@@ -5,7 +5,7 @@ namespace Home\Model;
 use Think\Cache\Driver\Db;
 use Think\Model;
 
-class TopupModel extends Model
+class MerchantsApplyModel extends Model
 {
 
     /**
@@ -18,31 +18,25 @@ class TopupModel extends Model
         $re = $this->add( $data );
         return $re;
     }
-
     /**
-     * 获取详情
-     * @param $id
+     * 获取大单ID
+     * @param $user_id
      * @return mixed
      */
-    public function get_info( $id )
+    public function get_id($user_id)
     {
-        $where['id'] = array ( 'eq' , $id );
-        $re          = $this->where( $where )->find();
-        return $re;
-    }
-    public function save_info($id, $data)
-    {
-        $where['id'] = array('eq', $id);
-        $temp = $this->where($where)->save($data);
-        return $temp;
+        $where['user_id'] = array ( 'eq' , $user_id );
+        $where['status']    = array ( 'eq' , '1' );
+        $id                 = $this->where( $where )->getField( 'id' );
+        return $id;
     }
     /**
-     * 充值列表
+     * 申请列表
      * @param $con
      * @return array
      */
     public function get_lists($con) {
-        $where = 'status = 1 and uid = ' . $con['id'];
+        $where = 'user_id = ' . $con['id'];
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10000;
         $limit1 = ($page - 1) * $limit . "," . $limit;
@@ -51,10 +45,12 @@ class TopupModel extends Model
         if ($lists) {
             foreach ($lists as $k => $v) {
                 $lists[$k]['addtime'] = date('Y-m-d H:i:s', $v['addtime']);
-                if ($v['pay_type'] == 1){
-                    $lists[$k]['title'] = '支付宝';
+                if ($v['status'] == 1){
+                    $lists[$k]['title'] = '申请中';
+                }elseif ($v['status'] == 2){
+                    $lists[$k]['title'] = '已通过';
                 }else{
-                    $lists[$k]['title'] = '微信';
+                    $lists[$k]['title'] = '已驳回';
                 }
             }
             return $lists;

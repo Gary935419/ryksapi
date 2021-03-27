@@ -17,6 +17,8 @@ use Home\Model\RouteCityModel;
 use Home\Model\UserModel;
 use Home\Model\UserWorkingModel;
 use Home\Model\OrderModel;
+use Home\Model\MerchantsApplyModel;
+use Home\Model\MerchantsImgModel;
 use Home\Model\TopupModel;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
@@ -28,6 +30,7 @@ use Home\Model\BalanceRecordModel;
 /**
  * Class UserCallController
  * @package Home\Controller
+ * @property MerchantsImgModel $MerchantsImgModel
  * @property TakerTypeModel $TakerTypeModel
  * @property SetConfigModel $SetConfigModel
  * @property CarTypeModel $CarTypeModel
@@ -39,6 +42,7 @@ use Home\Model\BalanceRecordModel;
  * @property UserModel $UserModel
  * @property UserWorkingModel $UserWorkingModel
  * @property OrderModel $OrderModel
+ * @property MerchantsApplyModel $MerchantsApplyModel
  * @property TopupModel $TopupModel
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTownModel $OrderTownModel
@@ -63,6 +67,8 @@ class UserCallController extends CommonController
     private $UserModel;
     private $UserWorkingModel;
     private $OrderModel;
+    private $MerchantsApplyModel;
+    private $MerchantsImgModel;
     private $TopupModel;
     private $OrderIntercityModel;
     private $OrderTownModel;
@@ -87,6 +93,8 @@ class UserCallController extends CommonController
         $this->UserModel = new UserModel();
         $this->UserWorkingModel = new UserWorkingModel();
         $this->OrderModel = new OrderModel();
+        $this->MerchantsApplyModel = new MerchantsApplyModel();
+        $this->MerchantsImgModel = new MerchantsImgModel();
         $this->TopupModel = new TopupModel();
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel = new OrderTownModel();
@@ -213,6 +221,45 @@ class UserCallController extends CommonController
         }
         $result = $this->OrderInvoiceModel->add($invoice);
         echoOk(200, '操作成功', $result);
+    }
+    /**
+     * 商户申请
+     */
+    public function insert_merchants(){
+        $data = self::$_DATA;
+
+        if (empty($data['tabChangePcardValue']) || empty($data['tabChangePtel1Value']) || empty($data['tabChangePname1Value']) || empty($data['tabChangePtelValue']) || empty($data['tabChangePnameValue']) || empty($data['tabChangeContentValue']) || empty($data['user_id']) || empty($data['upload_picture_list']) || empty($data['tabChangeNameValue'])) {
+            echoOk(301, '必填项不能为空');
+        }
+        $id = $this->MerchantsApplyModel->get_id($data['user_id']);
+        if (!empty($id)){
+            echoOk(301, '您已经申请了，请耐心等待！');
+        }
+        $imgs = json_decode($data['upload_picture_list'],true);
+        $invoice = array();
+        $invoice['user_id'] = $data['user_id'];
+        $invoice['status'] = 1;
+        $invoice['rejected'] = '';
+        $invoice['addtime'] = time();
+        $invoice['tabChangeNameValue'] = $data['tabChangeNameValue'];
+        $invoice['tabChangeNumberValue'] = $data['tabChangeNumberValue'];
+        $invoice['tabChangeContentValue'] = $data['tabChangeContentValue'];
+        $invoice['tabChangePnameValue'] = $data['tabChangePnameValue'];
+        $invoice['tabChangePtelValue'] = $data['tabChangePtelValue'];
+        $invoice['tabChangePname1Value'] = $data['tabChangePname1Value'];
+        $invoice['tabChangePtel1Value'] = $data['tabChangePtel1Value'];
+        $invoice['tabChangePcardValue'] = $data['tabChangePcardValue'];
+        $invoice['tabChangeNumber1Value'] = empty($data['tabChangeNumber1Value'])?'':$data['tabChangeNumber1Value'];
+
+        $id = $this->MerchantsApplyModel->add_order($invoice);
+        foreach ($imgs as $k => $v){
+            $invoicenew = array();
+            $invoicenew['mid'] = $id;
+            $invoicenew['path_server'] = $v['path_server'];
+            $invoicenew['addtime'] = time();
+            $this->MerchantsImgModel->add_order($invoicenew);
+        }
+        echoOk(200, '申请成功，2s后自动跳转', $id);
     }
     /**
      * 下单处理 代驾订单
@@ -712,7 +759,7 @@ class UserCallController extends CommonController
     {
         $data = self::$_DATA;
 
-        if (empty($data['order_id']) || empty($data['pay_type'])) {
+        if (empty($data['order_id']) ) {
             echoOk(301, '必填项不能为空', []);
         }
         $bigOrderInfo  =  $this->OrderModel->where('id = '.$data['order_id'])->find();
@@ -811,7 +858,6 @@ class UserCallController extends CommonController
         if (empty($data['order_id'])) {
             echoOk(301, '必填项不能为空', []);
         }
-
 
         $orderInfo = $this->OrderTownModel->where('id = '. $data['order_id'])->find();
         if (!$orderInfo) {
@@ -968,6 +1014,96 @@ class UserCallController extends CommonController
         echoOk(200, '操作成功', $re);
     }
     /**
+     * 小程序余额支付
+     */
+    public function balance_payment()
+    {
+        $data = self::$_DATA;
+
+        if (empty($data['order_id']) || empty($data['type'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+        if ($data['type'] == 1){
+            $bigOrderInfo  =  $this->OrderModel->where('id = '.$data['order_id'])->find();
+            if ($bigOrderInfo['order_type'] == 4){
+                $orderInfo = $this->OrderTownModel->where('big_order_id = '. $data['order_id'])->find();
+                if (!$orderInfo) {
+                    echoOk(301, '订单错误', []);
+                }
+                // 判断该订单是否已支付
+                if ($orderInfo['order_status'] == 2) {
+                    echoOk(301, '该订单已支付');
+                }
+            }else{
+                $orderInfo = $this->OrderTrafficModel->where('big_order_id = '. $data['order_id'])->find();
+                if (!$orderInfo) {
+                    echoOk(301, '订单错误', []);
+                }
+                // 判断该订单是否已支付
+                if ($orderInfo['order_status'] == 2) {
+                    echoOk(301, '该订单已支付');
+                }
+            }
+            $number = $bigOrderInfo['pay_number'];
+            $money = $orderInfo['price'];
+            $user = $this->UserModel->get_info($bigOrderInfo['user_id']);
+            if ($user['money'] < $money) {
+                echoOk(301, '余额不足');
+            }
+            $money_new = floatval($user['money']) - floatval($money);
+            $pay_numberWhere['pay_number'] =$number;
+            $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
+            $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
+            $save = [
+                'order_status' => 2,
+                'pay_type' => 3,
+            ];
+            if ($bigOrderInfo['order_type'] == 4){
+                $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
+                $this->OrderTownModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send($orderInfo['id']);
+            }else{
+                $orderInfo = $this->OrderTrafficModel->where($orderInfoWhere)->find();
+                $this->OrderTrafficModel->save_info($orderInfo['id'], $save);
+                //叫车
+                $this->OrderTownModel->online_send_new($orderInfo['id']);
+            }
+            $save_data = [
+                'money'                    => $money_new ,
+            ];
+            $this->UserModel->save_info($bigOrderInfo['user_id'],$save_data);
+        }else{
+            $orderInfo = $this->OrderTownModel->where('id = '. $data['order_id'])->find();
+            if (!$orderInfo) {
+                echoOk(301, '订单错误', []);
+            }
+
+            $number = $orderInfo['delay_number'];
+            $money = $orderInfo['delay_price'];
+
+            $user = $this->UserModel->get_info($orderInfo['user_id']);
+            if ($user['money'] < $money) {
+                echoOk(301, '余额不足');
+            }
+            $money_new = floatval($user['money']) - floatval($money);
+            $pay_numberWhere['delay_number'] =$number;
+            $save = [
+                'delay_state' => 1,
+                'pay_type_new' => 3,
+            ];
+            $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
+            $this->OrderTownModel->save_info($orderInfo['id'], $save);
+            $save_data = [
+                'money'                    => $money_new ,
+            ];
+            $this->UserModel->save_info($orderInfo['user_id'],$save_data);
+        }
+
+
+        echoOk(200, '支付成功，2s后自动跳转');
+    }
+    /**
      * 确认支付(小程序超时下单)
      */
     public function traffic_order_pay_new()
@@ -977,7 +1113,6 @@ class UserCallController extends CommonController
         if (empty($data['order_id'])) {
             echoOk(301, '必填项不能为空', []);
         }
-
 
         $orderInfo = $this->OrderTownModel->where('id = '. $data['order_id'])->find();
         if (!$orderInfo) {
@@ -1021,6 +1156,7 @@ class UserCallController extends CommonController
 
         $data = $this->arrayToXml($pay);
         $res = $this->wxpost($url, $data);
+
 //        对 统一下单返回得参数进行处理
         $pay_arr = $this->xmlToArray($res);  //这里是数组
 
@@ -1475,5 +1611,30 @@ class UserCallController extends CommonController
         }
     }
 
-
+    /**
+     * 单图片上传
+     */
+    public function pushFIle(){
+        $src="";
+        $_swap = time();
+        $number=$this->GetRandStr(2);
+        $_swap = $_swap.$number;
+        $fileName = $_swap.".".substr(strrchr($_FILES['file']['name'], '.'), 1);
+        move_uploaded_file($_FILES['file']["tmp_name"], "./Public/images/".$fileName);
+        if (file_exists("./Public/images/".$fileName)) {
+            $src="/Public/images/".$fileName;
+        }
+        echo json_encode(array('code' => 200,'src' => "https://ryks.ychlkj.cn".$src, 'msg' => "上传成功"));
+        return;
+    }
+    function GetRandStr($length){
+        $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $len=strlen($str)-1;
+        $randstr='';
+        for($i=0;$i<$length;$i++){
+            $num=mt_rand(0,$len);
+            $randstr .= $str[$num];
+        }
+        return $randstr;
+    }
 }

@@ -9,6 +9,7 @@ use Home\Model\OrderModel;
 use Home\Model\UserModel;
 use Home\Model\BalanceRecordModel;
 use Home\Model\TopupModel;
+use Home\Model\CouponModel;
 
 /**
  * Class PayReController
@@ -19,6 +20,7 @@ use Home\Model\TopupModel;
  * @property OrderTrafficModel $OrderTrafficModel
  * @property OrderTownModel $OrderTownModel
  * @property TopupModel $TopupModel
+ * @property CouponModel $CouponModel
  */
 class PayReController extends Controller
 {
@@ -29,6 +31,7 @@ class PayReController extends Controller
     private $OrderTrafficModel;
     private $OrderTownModel;
     private $TopupModel;
+    private $CouponModel;
 
     public function _initialize()
     {
@@ -38,6 +41,7 @@ class PayReController extends Controller
         $this->OrderTrafficModel = new OrderTrafficModel();
         $this->OrderTownModel = new OrderTownModel();
         $this->TopupModel = new TopupModel();
+        $this->CouponModel = new CouponModel();
 
     }
 
@@ -326,6 +330,19 @@ class PayReController extends Controller
             ];
             $this->TopupModel->save_info($bigOrderInfo['id'], $save);
             $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            if ($user_info['is_merchants'] == 1){
+                $coupon = [
+                    'user_id' => $user_info['id'],
+                    'money' => 1,
+                    'type' => 1,
+                    'add_time' => time(),
+                    'end_time' => time() + 604800
+                ];
+                for ($i=1; $i<=5; $i++)
+                {
+                    $this->CouponModel->addCoupon($coupon);
+                }
+            }
             echo 'SUCCESS';
         } else {
             echo 'SUCCESS';

@@ -118,6 +118,7 @@ class UserController extends CommonController
 //            $data['route_city_font1'] = $this->RouteCityModel->get_city_name($data['route_city_id1']);
 //            $data['route_city_font2'] = $this->RouteCityModel->get_city_name($data['route_city_id2']);
             $data['taker_type_id'] = '2';
+            $data['is_merchants'] = empty($data['is_merchants'])?'个人版':'商户版';
             $data['invitation_code1_up'] = empty($data['invitation_code1_up'])?'无邀请':$data['invitation_code1_up'];
             echoOk( 200 , '获取成功' , $data );
         } else {
