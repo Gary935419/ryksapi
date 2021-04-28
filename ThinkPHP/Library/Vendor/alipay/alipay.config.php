@@ -20,17 +20,17 @@
  
 //↓↓↓↓↓↓↓↓↓↓请在这里配置您的基本信息↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 //合作身份者id，以2088开头的16位纯数字
-define("PARTNER","2088531585393370");
+define("PARTNER","2088822267491511");
 
-define("SELLER_ID","ynqscx@foxmail.com");
+define("SELLER_ID","ryksss@163.com");
 
-define("ACCOUNT_NAME","云南如邮快送汽车服务有限公司");
+define("ACCOUNT_NAME","大连如邮快送汽车服务有限公司");
 
 //define('ALI_KEY','netakfq1rfjtckxpbbxe8j18kkvu69b7');
-define('ALI_KEY','a7blxa7khpzrjqo0r9tlwszg0g4tv8ad');
+define('ALI_KEY','nzir723j56ao1n45529pa6guzm6x84x3');
 
 //应用Id
-define("ALI_APPID","2019062865738169");
+define("ALI_APPID","2021002135667785");
 
 //商户的私钥（后缀是.pen）文件相对路径
 define("PRIVATE_KEY_PATH",dirname(__FILE__)."/key/rsa_private_key.pem");

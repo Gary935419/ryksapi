@@ -454,8 +454,8 @@ class UserController extends CommonController
             echoOk( 301 , '请上传完整三张图片。' );
         } else {
             $complaintData['image1'] = $imgInfo['image1']['path'];
-            $complaintData['image1'] = $imgInfo['image1']['path'];
-            $complaintData['image1'] = $imgInfo['image1']['path'];
+            $complaintData['image2'] = $imgInfo['image2']['path'];
+            $complaintData['image3'] = $imgInfo['image3']['path'];
         }
 
         $complaintData['lable']    = empty($data['lable'])?'暂无选择':$data['lable'];

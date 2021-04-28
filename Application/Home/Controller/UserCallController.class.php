@@ -79,6 +79,49 @@ class UserCallController extends CommonController
     private $BalanceRecordModel;
     private $OrderExtendModel;
 
+    public $KEY = "Nruyoukuaisong152326197512071176";
+    //应用ID
+    public $appid="wx9b94176ce775269c";
+    //商户号
+    public $mch_id="1580673321";
+    //设备号
+    public $device_info="WEB";
+    //随机字符串
+    public $nonce_str="";
+    //签名
+    public $sign="";
+    //签名类型
+    public $sign_type="MD5";
+    //商品描述
+    public $body="下单";
+    //商品详情  否
+    public $detail="";
+    //附加数据  否
+    public $attach="";
+    //商户订单号
+    public $out_trade_no="";
+    //货币类型
+    public $fee_type="CNY";
+    //总金额
+    public $total_fee=0;
+    //终端IP
+    public $spbill_create_ip="";
+    //交易起始时间    否
+    public $time_start="";
+    //交易结束时间    否
+    public $time_expire="";
+    //商品标记  否
+    public $goods_tag="";
+    //通知地址
+    public $notify_url="https://ryks.ychlkj.cn/index.php/home/PayRe/wxpay";
+    public $notify_url_new="https://ryks.ychlkj.cn/index.php/home/PayRe/wxpay_new";
+    //交易类型
+    public $trade_type="APP";
+    //指定支付方式
+    public $limit_pay="";//no_credit
+
+    public $openid="";
+
     public function _initialize()
     {
         parent::_initialize();
@@ -223,7 +266,7 @@ class UserCallController extends CommonController
         echoOk(200, '操作成功', $result);
     }
     /**
-     * 商户申请
+     * 商户申请 小程序
      */
     public function insert_merchants(){
         $data = self::$_DATA;
@@ -260,6 +303,57 @@ class UserCallController extends CommonController
             $this->MerchantsImgModel->add_order($invoicenew);
         }
         echoOk(200, '申请成功，2s后自动跳转', $id);
+    }
+    /**
+     * 商户申请 app
+     */
+    public function insert_merchants_app()
+    {
+        $data = self::$_DATA;
+
+        if (empty($data['tabChangePcardValue']) || empty($data['tabChangePtel1Value']) || empty($data['tabChangePname1Value']) || empty($data['tabChangePtelValue']) || empty($data['tabChangePnameValue']) || empty($data['tabChangeContentValue']) || empty($data['user_id']) || empty($data['upload_picture_list']) || empty($data['tabChangeNameValue'])) {
+            echoOk(301, '必填项不能为空');
+        }
+
+        $id = $this->MerchantsApplyModel->get_id($data['user_id']);
+        if (!empty($id)){
+            echoOk(301, '您已经申请了，请耐心等待！');
+        }
+
+        $imgInfo = uploadImg( '' );
+        if (empty($imgInfo['image1']) || empty($imgInfo['image2']) || empty($imgInfo['image3'])) {
+            echoOk( 301 , '请上传完整三张图片。' );
+        } else {
+            $complaintData[] = $imgInfo['image1']['path'];
+            $complaintData[] = $imgInfo['image2']['path'];
+            $complaintData[] = $imgInfo['image3']['path'];
+        }
+
+        $invoice = array();
+        $invoice['user_id'] = $data['user_id'];
+        $invoice['status'] = 1;
+        $invoice['rejected'] = '';
+        $invoice['addtime'] = time();
+        $invoice['tabChangeNameValue'] = $data['tabChangeNameValue'];
+        $invoice['tabChangeNumberValue'] = $data['tabChangeNumberValue'];
+        $invoice['tabChangeContentValue'] = $data['tabChangeContentValue'];
+        $invoice['tabChangePnameValue'] = $data['tabChangePnameValue'];
+        $invoice['tabChangePtelValue'] = $data['tabChangePtelValue'];
+        $invoice['tabChangePname1Value'] = $data['tabChangePname1Value'];
+        $invoice['tabChangePtel1Value'] = $data['tabChangePtel1Value'];
+        $invoice['tabChangePcardValue'] = $data['tabChangePcardValue'];
+        $invoice['tabChangeNumber1Value'] = empty($data['tabChangeNumber1Value'])?'':$data['tabChangeNumber1Value'];
+
+        $id = $this->MerchantsApplyModel->add_order($invoice);
+        foreach ($complaintData as $k => $v){
+            $invoicenew = array();
+            $invoicenew['mid'] = $id;
+            $invoicenew['path_server'] = $v;
+            $invoicenew['addtime'] = time();
+            $this->MerchantsImgModel->add_order($invoicenew);
+        }
+
+        echoOk( 200 , '申请成功' );
     }
     /**
      * 下单处理 代驾订单
@@ -787,54 +881,87 @@ class UserCallController extends CommonController
 
         switch ($data['pay_type']) {
             case 1: // 支付宝
-                $aliPay = new \aliPay();
-                $alipay_sign = $aliPay->getRequestParam($number, $money, 'Home/PayRe/alipay'); // 生成签名
+                $aop = new \AopClient;
+                $aop->gatewayUrl = "https://openapi.alipay.com/gateway.do";
+                $aop->appId = "2021002135667785";
+                $aop->rsaPrivateKey = 'MIIEpAIBAAKCAQEAk9eSc0xh3ZHC/FNMh9vd6WVGK5J7DO1RAt1g9oLf7EF5bzPytbxTfVbXp7NlUbJQ6jQR2eDNJLRa/piJpUQFnbW1JIf2KW+wH5KOztDBs3DLUoKpAk+s7QW0MCZEtzXwUGKiiv5AeLATcRLzV7galuHCSq6y/55f4rj5Qley9OaH/lk5K7Nmr/tdTVAhIOkskr2DIR9RVkN1vfn0Sgiv06bpkgDIe6qP7jP31FAqr9+W8VhmogMCBsvopOerLhXyEfhZj9b3Q5OdtzdSloyF5FRpGOkdUNZ5QQuJXFA/vPOEf5VtYxH/PfEautUdGPAg491FzMdNKMM8zkoYdim+3QIDAQABAoIBAFO4u1WRxsYLumjb3zX8m7GFSXR5Ujei2MKPjU5sFNScy2DfAS5LhNgw6pUscU8PdOT8MbO5q1KC1BjjVueBGtERyo/ycsNKXWmzvC2AaIDueiWymnUVm67qEP1HXpiF8h4DjVq62tW9mHTrL2TYfC4/kKBsSC+bh19EMtuQAGbQlffQlx8syTlbzYsV2zqebm7dZOFNxMuNHHb0H36T0F50o8bYuln2r9Fpp9ZFNxHbwTT6sy0tKborYmChVEIKc4Cj5i5OlcNRVO6w6EfrGRexokTknxy9km0vVQGRkMx0fgL414OafM0ToF58a3jL3+fNo5PM8+dqqYx7eOSiff0CgYEA/MqccDZLV7R7JKM+xjLNecN3WsXcRSnGgDY4oys/JMhfUo69PsG9MULBYzXMewN8EhiFCiyaVgIs7hzo0us4R5rRL+GvxgslEWgxwRA/gUciD1VvTMz5AWVZTw2T7okpKG6zpRE7lh4AU1GrGA16RXVox9QeYu97/GFGmNU077sCgYEAlbfzndBtf4iftC2UWaMOFO34fxlcvAaCWmWrNot+zGKz9eAktAaqYuI01ElxXPl6+J9TZeVPdgFtMWybK+w1zYpXDIdOVkwMdXoEZWEqxuoIo7uF+3cs3H/ha+rn7EJNMeOnXHm/ngqMH1ZCMmybeue3LYoR3ignaVJ8AF6YpkcCgYEAiIDsGtfmtVR7DpysICB8vhyjzbt8J0jYrJEa4llO/pDIkG8Nl97MR9ZxUR5S7bZDAA6HgKf3Kyx/kJDB1Gs598iM3xsybHHGMXEfNM6OTEPaC4ep00H30B4nLL37PNqKBBBLJ353u6c1q8g06IcWmH0++HD9e5UwUWdB1POEY1MCgYA7A+SSe3r9/3O8SQ8l+iDt3RPLvcqRDxvI2DSR7pCPrgRz0eOF1u7IxZO/bieyV2DCqcLs8mPNByjsh3vu51AZ8gL4HEmjuJxcnjknYRLEj7HSIHPiuIpFbF8F8/Vxan0VQkBRMmh2un+bRpwXVjo/SyEoYTlD0Z4fZPUeDCuttwKBgQC9LpPWblPpJIdn+ACTAkHcxQbPCLn1TJt8LjOU0N22eBRF3CtngDLSvHcEtMZYmQCrTJqC3BBHmxuAcizXznl5QUztJcGcvZ9Db7TezMu4K/0bnqASbBZUNZTtlb6c6KILeLfz/1lSH5yjg186MxL3QH+huiJ7SyCVZi9+suDvAQ==';
+                $aop->format = "json";
+                $aop->charset = "UTF-8";
+                $aop->alipayrsaPublicKey = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnk/JVGyl9hmYx6S241Vp0lixFqfwBg038zgrNyVjQlF8ecktULWktYDeHQ8TTwx8d4JJWNb5MF+ytbdlI0aWvg0oQVO09UhLE1CCSQ0uHlxbcdkLjuYNO0LTjHJtPuRdh1WcE27JcHmKX8MYPKooaUTmz0e5oEh3t9TolkWr8gaYFrP0DrE8jT5yg3IJEUnDxvWK46sFj4XRpIXuBE5CcJ5eRM0DstLk5LGwTZBl7Nu1bxK9YSYLH0p0LZXlsfQPca2DUUwrrvYwJAkVtQUkteFvGaRyqjVfT+BeUMNM48yaaXfWhIcMzX9nCpjNRnrt7IKeynv5xcccsXq9zXRUvQIDAQAB';
+                //实例化具体API对应的request类,类名称和接口名称对应,当前调用接口名称：alipay.trade.app.pay
+                $request = new \AlipayTradeAppPayRequest();
+                //SDK已经封装掉了公共参数，这里只需要传入业务参数
+                $bizcontent = "{\"body\":\"sell\","
+                    . "\"subject\": \"sell\","
+                    . "\"out_trade_no\": \"$number\","
+                    . "\"timeout_express\": \"30m\","
+                    . "\"total_amount\": \"$money\","
+                    . "\"product_code\":\"QUICK_MSECURITY_PAY\""
+                    . "}";
+                $request->setNotifyUrl("https://ryks.ychlkj.cn/index.php/home/PayRe/alipay");
+                $request->setBizContent($bizcontent);
+
+                //这里和普通的接口调用不同，使用的是sdkExecute
+                $alipay_sign = $aop->sdkExecute($request);
                 break;
             case 2: // 微信
-                $wxPay = new \WxPay();
-                $txnAmt = intval($money * 100);
-                $txnTime = date("YmdHis");
-                $result = $wxPay->payOrder($number, $txnTime, $txnAmt);
-                $appRequest = $wxPay->getAppRequest($result['prepay_id']);
-                $appRequest['_package'] = $appRequest['package'];
-                unset($appRequest['package']);
-                $weixin_sign = [
-                    'order_no' => $number,
-                    'prepay_id' => $result['prepay_id'],
-                    'money' => $txnAmt,
-                    'txntime' => $txnTime,
-                    'app_request' => $appRequest,
-                ];
-                break;
-            case 3: // 余额
-                $user = $this->UserModel->get_info($bigOrderInfo['user_id']);
-                if ($user['money'] < $money) {
-                    echoOk(301, '余额不足');
+                $timeOut = 6;
+                $this->out_trade_no=$number;
+                $this->total_fee=floatval($money)*100;
+                $this->spbill_create_ip=$_SERVER['REMOTE_ADDR'];
+                $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+                $this->time_start=date("YmdHis");
+                $this->time_expire=date("YmdHis", time() + 600);
+                $data["appid"]=$this->appid;
+                $data["mch_id"]=$this->mch_id;
+                $data["device_info"]=$this->device_info;
+                $data["nonce_str"]=$this->getNonceStr();
+                $data["sign_type"]=$this->sign_type;
+                $data["body"]=$this->body;
+                $data["detail"]=$this->detail;
+                $data["attach"]=$this->attach;
+                $data["out_trade_no"]=$this->out_trade_no;
+                $data["fee_type"]=$this->fee_type;
+                $data["total_fee"]=$this->total_fee;
+                $data["spbill_create_ip"]=$this->spbill_create_ip;
+                $data["time_start"]=$this->time_start;
+                $data["time_expire"]=$this->time_expire;
+                $data["goods_tag"]=$this->goods_tag;
+                $data["notify_url"]=$this->notify_url;
+                $data["trade_type"]=$this->trade_type;
+                $data["limit_pay"]=$this->limit_pay;
+                $data["sign"]=$this->MakeSign($data);
+
+                $xml=$this->ToXml($data);
+
+                $response = $this->postXmlCurl($xml, $url, false,$timeOut);
+
+                $values=$this->FromXml($response);
+                if(!$values) {
+                    echoOk(301, 'xml数据异常');
                 }
-                $money_new = floatval($user['money']) - floatval($money);
-                $pay_numberWhere['pay_number'] =$number;
-                $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
-                $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
-                $save = [
-                    'order_status' => 2,
-                    'pay_type' => 3,
-                ];
-                if ($bigOrderInfo['order_type'] == 4){
-                    $orderInfo = $this->OrderTownModel->where($orderInfoWhere)->find();
-                    $this->OrderTownModel->save_info($orderInfo['id'], $save);
-                    //叫车
-                    $this->OrderTownModel->online_send($orderInfo['id']);
-                }else{
-                    $orderInfo = $this->OrderTrafficModel->where($orderInfoWhere)->find();
-                    $this->OrderTrafficModel->save_info($orderInfo['id'], $save);
-                    //叫车
-                    $this->OrderTownModel->online_send_new($orderInfo['id']);
+
+                if($values['return_code'] != 'SUCCESS'){
+                    echoOk(301, $values['return_msg']);
                 }
-                $save_data = [
-                    'money'                    => $money_new ,
-                ];
-                $this->UserModel->save_info($bigOrderInfo['user_id'],$save_data);
-                break;
+
+                if($values["result_code"]!='SUCCESS'){
+                    echoOk(301, $values['err_code_des']);
+                }
+                $sign = $this->MakeSign($values);
+                $weixin_sign = array();
+                if($values["sign"] == $sign){
+                    $weixin_sign["appid"]=$this->appid;
+                    $weixin_sign["partnerid"]=$this->mch_id;
+                    $weixin_sign["prepayid"]=$values["prepay_id"];
+                    $weixin_sign["package"]="Sign=WXPay";
+                    $weixin_sign["noncestr"]=$this->getNonceStr();
+                    $weixin_sign["timestamp"]="".time();
+                    $weixin_sign["sign"]=$this->MakeSign($weixin_sign);
+                    break;
+                } else {
+                    echoOk(301, '签名验证失败');
+                }
         }
 
         // 积分
@@ -869,43 +996,87 @@ class UserCallController extends CommonController
 
         switch ($data['pay_type']) {
             case 1: // 支付宝
-                $aliPay = new \aliPay();
-                $alipay_sign = $aliPay->getRequestParam($number, $money, 'Home/PayRe/alipay_new'); // 生成签名
+                $aop = new \AopClient;
+                $aop->gatewayUrl = "https://openapi.alipay.com/gateway.do";
+                $aop->appId = "2021002135667785";
+                $aop->rsaPrivateKey = 'MIIEpAIBAAKCAQEAk9eSc0xh3ZHC/FNMh9vd6WVGK5J7DO1RAt1g9oLf7EF5bzPytbxTfVbXp7NlUbJQ6jQR2eDNJLRa/piJpUQFnbW1JIf2KW+wH5KOztDBs3DLUoKpAk+s7QW0MCZEtzXwUGKiiv5AeLATcRLzV7galuHCSq6y/55f4rj5Qley9OaH/lk5K7Nmr/tdTVAhIOkskr2DIR9RVkN1vfn0Sgiv06bpkgDIe6qP7jP31FAqr9+W8VhmogMCBsvopOerLhXyEfhZj9b3Q5OdtzdSloyF5FRpGOkdUNZ5QQuJXFA/vPOEf5VtYxH/PfEautUdGPAg491FzMdNKMM8zkoYdim+3QIDAQABAoIBAFO4u1WRxsYLumjb3zX8m7GFSXR5Ujei2MKPjU5sFNScy2DfAS5LhNgw6pUscU8PdOT8MbO5q1KC1BjjVueBGtERyo/ycsNKXWmzvC2AaIDueiWymnUVm67qEP1HXpiF8h4DjVq62tW9mHTrL2TYfC4/kKBsSC+bh19EMtuQAGbQlffQlx8syTlbzYsV2zqebm7dZOFNxMuNHHb0H36T0F50o8bYuln2r9Fpp9ZFNxHbwTT6sy0tKborYmChVEIKc4Cj5i5OlcNRVO6w6EfrGRexokTknxy9km0vVQGRkMx0fgL414OafM0ToF58a3jL3+fNo5PM8+dqqYx7eOSiff0CgYEA/MqccDZLV7R7JKM+xjLNecN3WsXcRSnGgDY4oys/JMhfUo69PsG9MULBYzXMewN8EhiFCiyaVgIs7hzo0us4R5rRL+GvxgslEWgxwRA/gUciD1VvTMz5AWVZTw2T7okpKG6zpRE7lh4AU1GrGA16RXVox9QeYu97/GFGmNU077sCgYEAlbfzndBtf4iftC2UWaMOFO34fxlcvAaCWmWrNot+zGKz9eAktAaqYuI01ElxXPl6+J9TZeVPdgFtMWybK+w1zYpXDIdOVkwMdXoEZWEqxuoIo7uF+3cs3H/ha+rn7EJNMeOnXHm/ngqMH1ZCMmybeue3LYoR3ignaVJ8AF6YpkcCgYEAiIDsGtfmtVR7DpysICB8vhyjzbt8J0jYrJEa4llO/pDIkG8Nl97MR9ZxUR5S7bZDAA6HgKf3Kyx/kJDB1Gs598iM3xsybHHGMXEfNM6OTEPaC4ep00H30B4nLL37PNqKBBBLJ353u6c1q8g06IcWmH0++HD9e5UwUWdB1POEY1MCgYA7A+SSe3r9/3O8SQ8l+iDt3RPLvcqRDxvI2DSR7pCPrgRz0eOF1u7IxZO/bieyV2DCqcLs8mPNByjsh3vu51AZ8gL4HEmjuJxcnjknYRLEj7HSIHPiuIpFbF8F8/Vxan0VQkBRMmh2un+bRpwXVjo/SyEoYTlD0Z4fZPUeDCuttwKBgQC9LpPWblPpJIdn+ACTAkHcxQbPCLn1TJt8LjOU0N22eBRF3CtngDLSvHcEtMZYmQCrTJqC3BBHmxuAcizXznl5QUztJcGcvZ9Db7TezMu4K/0bnqASbBZUNZTtlb6c6KILeLfz/1lSH5yjg186MxL3QH+huiJ7SyCVZi9+suDvAQ==';
+                $aop->format = "json";
+                $aop->charset = "UTF-8";
+                $aop->alipayrsaPublicKey = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnk/JVGyl9hmYx6S241Vp0lixFqfwBg038zgrNyVjQlF8ecktULWktYDeHQ8TTwx8d4JJWNb5MF+ytbdlI0aWvg0oQVO09UhLE1CCSQ0uHlxbcdkLjuYNO0LTjHJtPuRdh1WcE27JcHmKX8MYPKooaUTmz0e5oEh3t9TolkWr8gaYFrP0DrE8jT5yg3IJEUnDxvWK46sFj4XRpIXuBE5CcJ5eRM0DstLk5LGwTZBl7Nu1bxK9YSYLH0p0LZXlsfQPca2DUUwrrvYwJAkVtQUkteFvGaRyqjVfT+BeUMNM48yaaXfWhIcMzX9nCpjNRnrt7IKeynv5xcccsXq9zXRUvQIDAQAB';
+                //实例化具体API对应的request类,类名称和接口名称对应,当前调用接口名称：alipay.trade.app.pay
+                $request = new \AlipayTradeAppPayRequest();
+                //SDK已经封装掉了公共参数，这里只需要传入业务参数
+                $bizcontent = "{\"body\":\"sell\","
+                    . "\"subject\": \"sell\","
+                    . "\"out_trade_no\": \"$number\","
+                    . "\"timeout_express\": \"30m\","
+                    . "\"total_amount\": \"$money\","
+                    . "\"product_code\":\"QUICK_MSECURITY_PAY\""
+                    . "}";
+                $request->setNotifyUrl("https://ryks.ychlkj.cn/index.php/home/PayRe/alipay_new");
+                $request->setBizContent($bizcontent);
+
+                //这里和普通的接口调用不同，使用的是sdkExecute
+                $alipay_sign = $aop->sdkExecute($request);
                 break;
             case 2: // 微信
-                $wxPay = new \WxPay();
-                $txnAmt = intval($money * 100);
-                $txnTime = date("YmdHis");
-                $result = $wxPay->payOrderNew($number, $txnTime, $txnAmt);
-                $appRequest = $wxPay->getAppRequest($result['prepay_id']);
-                $appRequest['_package'] = $appRequest['package'];
-                unset($appRequest['package']);
-                $weixin_sign = [
-                    'order_no' => $number,
-                    'prepay_id' => $result['prepay_id'],
-                    'money' => $txnAmt,
-                    'txntime' => $txnTime,
-                    'app_request' => $appRequest,
-                ];
-                break;
-            case 3: // 余额
-                $user = $this->UserModel->get_info($orderInfo['user_id']);
-                if ($user['money'] < $money) {
-                    echoOk(301, '余额不足');
+                $timeOut = 6;
+                $this->out_trade_no=$number;
+                $this->total_fee=floatval($money)*100;
+                $this->spbill_create_ip=$_SERVER['REMOTE_ADDR'];
+                $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+                $this->time_start=date("YmdHis");
+                $this->time_expire=date("YmdHis", time() + 600);
+                $data["appid"]=$this->appid;
+                $data["mch_id"]=$this->mch_id;
+                $data["device_info"]=$this->device_info;
+                $data["nonce_str"]=$this->getNonceStr();
+                $data["sign_type"]=$this->sign_type;
+                $data["body"]=$this->body;
+                $data["detail"]=$this->detail;
+                $data["attach"]=$this->attach;
+                $data["out_trade_no"]=$this->out_trade_no;
+                $data["fee_type"]=$this->fee_type;
+                $data["total_fee"]=$this->total_fee;
+                $data["spbill_create_ip"]=$this->spbill_create_ip;
+                $data["time_start"]=$this->time_start;
+                $data["time_expire"]=$this->time_expire;
+                $data["goods_tag"]=$this->goods_tag;
+                $data["notify_url"]=$this->notify_url_new;
+                $data["trade_type"]=$this->trade_type;
+                $data["limit_pay"]=$this->limit_pay;
+                $data["sign"]=$this->MakeSign($data);
+
+                $xml=$this->ToXml($data);
+
+                $response = $this->postXmlCurl($xml, $url, false,$timeOut);
+
+                $values=$this->FromXml($response);
+                if(!$values) {
+                    echoOk(301, 'xml数据异常');
                 }
-                $money_new = floatval($user['money']) - floatval($money);
-                $pay_numberWhere['delay_number'] =$number;
-                $save = [
-                    'delay_state' => 1,
-                    'pay_type_new' => 3,
-                ];
-                $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
-                $this->OrderTownModel->save_info($orderInfo['id'], $save);
-                $save_data = [
-                    'money'                    => $money_new ,
-                ];
-                $this->UserModel->save_info($orderInfo['user_id'],$save_data);
-                break;
+
+                if($values['return_code'] != 'SUCCESS'){
+                    echoOk(301, $values['return_msg']);
+                }
+
+                if($values["result_code"]!='SUCCESS'){
+                    echoOk(301, $values['err_code_des']);
+                }
+                $sign = $this->MakeSign($values);
+                $weixin_sign = array();
+                if($values["sign"] == $sign){
+                    $weixin_sign["appid"]=$this->appid;
+                    $weixin_sign["partnerid"]=$this->mch_id;
+                    $weixin_sign["prepayid"]=$values["prepay_id"];
+                    $weixin_sign["package"]="Sign=WXPay";
+                    $weixin_sign["noncestr"]=$this->getNonceStr();
+                    $weixin_sign["timestamp"]="".time();
+                    $weixin_sign["sign"]=$this->MakeSign($weixin_sign);
+                    break;
+                } else {
+                    echoOk(301, '签名验证失败');
+                }
         }
 
         // 积分
@@ -1014,7 +1185,7 @@ class UserCallController extends CommonController
         echoOk(200, '操作成功', $re);
     }
     /**
-     * 小程序余额支付
+     * 余额支付
      */
     public function balance_payment()
     {
@@ -1636,5 +1807,141 @@ class UserCallController extends CommonController
             $randstr .= $str[$num];
         }
         return $randstr;
+    }
+    /**
+     *
+     * 产生随机字符串，不长于32位
+     * @param int $length
+     * @return 产生的随机字符串
+     */
+    public function getNonceStr($length = 32) {
+        $chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        $str ="";
+        for ( $i = 0; $i < $length; $i++ )  {
+            $str .= substr($chars, mt_rand(0, strlen($chars)-1), 1);
+        }
+        return $str;
+    }
+    /**
+     * 生成签名
+     * @return 签名，
+     */
+    public function MakeSign($data) {
+        //签名步骤一：按字典序排序参数
+        ksort($data);
+        $string = $this->ToUrlParams($data);
+        //签名步骤二：在string后加入KEY
+        $string = $string . "&key=".$this->KEY;
+        //签名步骤三：MD5加密
+        $string = md5($string);
+        //签名步骤四：所有字符转为大写
+        $result = strtoupper($string);
+        return $result;
+    }
+    /**
+     * 输出xml字符
+     * @throws WxPayException
+     **/
+    public function ToXml($data) {
+        $xml = "<xml>";
+        foreach ($data as $key=>$val)
+        {
+            if (is_numeric($val)){
+                $xml.="<".$key.">".$val."</".$key.">";
+            }else{
+                $xml.="<".$key."><![CDATA[".$val."]]></".$key.">";
+            }
+        }
+        $xml.="</xml>";
+        return $xml;
+    }
+    /**
+     * 以post方式提交xml到对应的接口url
+     *
+     * @param string $xml  需要post的xml数据
+     * @param string $url  url
+     * @param bool $useCert 是否需要证书，默认不需要
+     * @param int $second   url执行超时时间，默认30s
+     * @throws WxPayException
+     */
+    private function postXmlCurl($xml, $url, $useCert = false, $second = 30) {
+        $isdir = $_SERVER['DOCUMENT_ROOT']."/cert/";//证书位置;绝对路径
+        $ch = curl_init();
+        //设置超时
+        curl_setopt($ch, CURLOPT_TIMEOUT, $second);
+
+        //如果有配置代理这里就设置代理
+        /*if(WxPayConfig::CURL_PROXY_HOST != "0.0.0.0"
+            && WxPayConfig::CURL_PROXY_PORT != 0){
+            curl_setopt($ch,CURLOPT_PROXY, "0.0.0.0");
+            curl_setopt($ch,CURLOPT_PROXYPORT, 0);
+        }*/
+        curl_setopt($ch,CURLOPT_URL, $url);
+        //curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,true);
+        curl_setopt($ch,CURLOPT_CAINFO,$isdir . '/rootca.pem');
+
+        curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,FALSE);
+        curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,FALSE);//严格校验2
+
+        //curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+        //设置header
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        //要求结果为字符串且输出到屏幕上
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+        if($useCert == true){
+            //设置证书
+            //使用证书：cert 与 key 分别属于两个.pem文件
+            curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
+            curl_setopt($ch,CURLOPT_SSLCERT, $isdir . "/apiclient_cert.pem");
+            curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
+            curl_setopt($ch,CURLOPT_SSLKEY, $isdir . "/apiclient_key.pem");
+        }
+        //post提交方式
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+        //运行curl
+        $data = curl_exec($ch);
+        //返回结果
+        if($data){
+            curl_close($ch);
+            return $data;
+        } else {
+            $error = curl_errno($ch);
+            curl_close($ch);
+            file_put_contents("error.txt", "curl出错，错误码:$error");
+            return false;
+        }
+    }
+    /**
+     * 将xml转为array
+     * @param string $xml
+     * @throws WxPayException
+     */
+    public function FromXml($xml) {
+        if(!$xml){
+            return false;
+            //throw new WxPayException("xml数据异常！");
+        }
+        //将XML转为array
+        //禁止引用外部xml实体
+        libxml_disable_entity_loader(true);
+        $values = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        return $values;
+    }
+    /**
+     * 格式化参数格式化成url参数
+     */
+    public function ToUrlParams($data) {
+        $buff = "";
+        foreach ($data as $k => $v)
+        {
+            if($k != "sign" && $v != "" && !is_array($v)){
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+
+        $buff = trim($buff, "&");
+        return $buff;
     }
 }
