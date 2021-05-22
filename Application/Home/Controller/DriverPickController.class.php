@@ -503,6 +503,9 @@ class DriverPickController extends CommonController
             case 1:
                 //专车送  顺风送  代买
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
+                if ($orderInfo['order_status'] == 7){
+                    echoOk(301, '当前订单无法取消', []);
+                }
                 if ($orderInfo['order_status'] != 8) {
                     $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
                     echoOk( 200 , '操作成功' ,$result);

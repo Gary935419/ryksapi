@@ -50,11 +50,22 @@ class PayReController extends Controller
      */
     public function wxpay()
     {
-        $request_body = file_get_contents("php://input");
-        $xml = simplexml_load_string($request_body, 'SimpleXMLElement', LIBXML_NOCDATA);
+        $receipt = $_REQUEST;
+        if ($receipt == null) {
+            $receipt = file_get_contents("php://input");
+        }
+        if ($receipt == null) {
+            $receipt = $GLOBALS['HTTP_RAW_POST_DATA'];
+        }
+        $post_data = $this->xmlToArray($receipt);
+        $postSign = $post_data['sign'];
+        unset($post_data['sign']);
+        ksort($post_data);// 对数据进行排序
+        $str = $params = http_build_query($post_data);//对数组数据拼接成key=value字符串
+        $user_sign = strtoupper(md5($str . "&key=Nruyoukuaisong152326197512071176"));   //再次生成签名，与$postSign比较
+        $ordernumber = $post_data['out_trade_no'];// 订单可以查看一下数据库是否有这个订单
 
-        if (strval($xml->return_code) == 'SUCCESS' && strval($xml->out_trade_no)) {
-            $ordernumber = array('eq', $xml->out_trade_no);
+        if ($post_data['return_code'] == 'SUCCESS' && $postSign == $user_sign) {
             $pay_numberWhere['pay_number'] =$ordernumber;
             $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
             $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
