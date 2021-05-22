@@ -85,35 +85,91 @@ class PayReController extends Controller
                 $this->OrderTownModel->online_send_new($orderInfo['id']);
             }
             echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
+        }
+    }
+    /**
+     * 微信支付回调 app超时
+     */
+    public function wxpay_new()
+    {
+        $receipt = $_REQUEST;
+        if ($receipt == null) {
+            $receipt = file_get_contents("php://input");
+        }
+        if ($receipt == null) {
+            $receipt = $GLOBALS['HTTP_RAW_POST_DATA'];
+        }
+        $post_data = $this->xmlToArray($receipt);
+        $postSign = $post_data['sign'];
+        unset($post_data['sign']);
+        ksort($post_data);// 对数据进行排序
+        $str = $params = http_build_query($post_data);//对数组数据拼接成key=value字符串
+        $user_sign = strtoupper(md5($str . "&key=Nruyoukuaisong152326197512071176"));   //再次生成签名，与$postSign比较
+        $ordernumber = $post_data['out_trade_no'];// 订单可以查看一下数据库是否有这个订单
 
-//            if ($order) {
-//                // 判断该订单是否已经支付成功
-//                if (!($order['status'] == '5')) {
-//                    $money = $order['price'] - $order['coupon'];
-//
-//                    $CouponModel = new \Home\Model\CouponModel();
-//                    if (!empty($order['coupon_id'])) {
-//                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
-//                    }
-//
-//                    $this->OrderModel->pay_success($xml->out_trade_no);
-//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-//
-//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-//                }
-//            } else {
-//                // 判断该订单是否已经支付成功
-//                if (!($order['status'] == '5')) {
-//                    $OrderTownModel = new \Home\Model\OrderTownModel();
-//                    $order = $OrderTownModel->where($where)->find();
-//                    $money = $order['price'];
-//
-//                    $this->OrderModel->pay_success($xml->out_trade_no);
-//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-//
-//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-//                }
-//            }
+        if ($post_data['return_code'] == 'SUCCESS' && $postSign == $user_sign) {
+            $pay_numberWhere['delay_number'] = $ordernumber;
+            $save = [
+                'delay_state' => 1,
+                'pay_type_new' => 1,
+            ];
+            $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
+            $this->OrderTownModel->save_info($orderInfo['id'], $save);
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
+        }
+    }
+    /**
+     * 微信app充值支付回调
+     */
+    public function wxpay_new_top()
+    {
+        $receipt = $_REQUEST;
+        if ($receipt == null) {
+            $receipt = file_get_contents("php://input");
+        }
+        if ($receipt == null) {
+            $receipt = $GLOBALS['HTTP_RAW_POST_DATA'];
+        }
+        $post_data = $this->xmlToArray($receipt);
+        $postSign = $post_data['sign'];
+        unset($post_data['sign']);
+        ksort($post_data);// 对数据进行排序
+        $str = $params = http_build_query($post_data);//对数组数据拼接成key=value字符串
+        $user_sign = strtoupper(md5($str . "&key=Nruyoukuaisong152326197512071176"));   //再次生成签名，与$postSign比较
+        $ordernumber = $post_data['out_trade_no'];// 订单可以查看一下数据库是否有这个订单
+
+        if ($post_data['return_code'] == 'SUCCESS' && $postSign == $user_sign) {
+            $pay_numberWhere['paynumber'] =$ordernumber;
+            $bigOrderInfo = $this->TopupModel->where($pay_numberWhere)->find();
+            $user_info = $this->UserModel->get_user($bigOrderInfo['uid']);
+            $moneynew = floatval($bigOrderInfo['money']) + floatval($user_info['money']);
+            $save = [
+                'status' => 1,
+                'pay_type' => 0,
+            ];
+            $savenew = [
+                'money' => $moneynew,
+            ];
+            $this->TopupModel->save_info($bigOrderInfo['id'], $save);
+            $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            if ($user_info['is_merchants'] == 1){
+                $coupon = [
+                    'user_id' => $user_info['id'],
+                    'money' => 1,
+                    'type' => 1,
+                    'add_time' => time(),
+                    'end_time' => time() + 604800
+                ];
+                for ($i=1; $i<=5; $i++)
+                {
+                    $this->CouponModel->addCoupon($coupon);
+                }
+            }
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
         }else{
             echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
         }
@@ -148,58 +204,6 @@ class PayReController extends Controller
             echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
         }
     }
-
-    /**
-     * 微信支付回调 app超时
-     */
-    public function wxpay_new()
-    {
-        $request_body = file_get_contents("php://input");
-        $xml = simplexml_load_string($request_body, 'SimpleXMLElement', LIBXML_NOCDATA);
-
-        if (strval($xml->return_code) == 'SUCCESS' && strval($xml->out_trade_no)) {
-            $ordernumber = array('eq', $xml->out_trade_no);
-            $pay_numberWhere['delay_number'] =$ordernumber;
-            $save = [
-                'delay_state' => 1,
-                'pay_type_new' => 1,
-            ];
-            $orderInfo = $this->OrderTownModel->where($pay_numberWhere)->find();
-            $this->OrderTownModel->save_info($orderInfo['id'], $save);
-            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-
-//            if ($order) {
-//                // 判断该订单是否已经支付成功
-//                if (!($order['status'] == '5')) {
-//                    $money = $order['price'] - $order['coupon'];
-//
-//                    $CouponModel = new \Home\Model\CouponModel();
-//                    if (!empty($order['coupon_id'])) {
-//                        $CouponModel->where('id = "' . $order['coupon_id'] . '"')->delete();
-//                    }
-//
-//                    $this->OrderModel->pay_success($xml->out_trade_no);
-//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-//
-//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-//                }
-//            } else {
-//                // 判断该订单是否已经支付成功
-//                if (!($order['status'] == '5')) {
-//                    $OrderTownModel = new \Home\Model\OrderTownModel();
-//                    $order = $OrderTownModel->where($where)->find();
-//                    $money = $order['price'];
-//
-//                    $this->OrderModel->pay_success($xml->out_trade_no);
-//                    $this->BalanceRecordModel->balance($order['driver_id'], '收到车费', 1, $money);
-//
-//                    echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
-//                }
-//            }
-        }else{
-            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
-        }
-    }
     /**
      * 支付宝回调 app超时
      */
@@ -219,7 +223,44 @@ class PayReController extends Controller
             echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
         }
     }
-
+    /**
+     * 支付宝充值回调
+     */
+    public function alipay_new_top()
+    {
+        if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
+            $ordernumber = array('eq', I('out_trade_no'));
+            $pay_numberWhere['paynumber'] =$ordernumber;
+            $bigOrderInfo = $this->TopupModel->where($pay_numberWhere)->find();
+            $user_info = $this->UserModel->get_user($bigOrderInfo['uid']);
+            $moneynew = floatval($bigOrderInfo['money']) + floatval($user_info['money']);
+            $save = [
+                'status' => 1,
+                'pay_type' => 1,
+            ];
+            $savenew = [
+                'money' => $moneynew,
+            ];
+            $this->TopupModel->save_info($bigOrderInfo['id'], $save);
+            $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            if ($user_info['is_merchants'] == 1){
+                $coupon = [
+                    'user_id' => $user_info['id'],
+                    'money' => 1,
+                    'type' => 1,
+                    'add_time' => time(),
+                    'end_time' => time() + 604800
+                ];
+                for ($i=1; $i<=5; $i++)
+                {
+                    $this->CouponModel->addCoupon($coupon);
+                }
+            }
+            echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+        }else{
+            echo '<xml><return_code><![CDATA[ERROR]]></return_code><return_msg><![CDATA[ERROR]]></return_msg></xml>';
+        }
+    }
     function xmlToArray($xml, $type = '')
     {
         //禁止引用外部xml实体
@@ -233,7 +274,9 @@ class PayReController extends Controller
         $arr = json_decode(json_encode($xmlstring), true);
         return $arr;
     }
-
+    /**
+     * 微信支付回调 小程序下单
+     */
     function Wx_notify_url()
     {
 
@@ -277,6 +320,9 @@ class PayReController extends Controller
             echo '支付失败';
         }
     }
+    /**
+     * 微信支付回调 小程序超时
+     */
     function Wx_notify_url_new()
     {
 
@@ -309,6 +355,9 @@ class PayReController extends Controller
             echo '支付失败';
         }
     }
+    /**
+     * 微信支付回调 小程序充值
+     */
     function topup_treatment()
     {
 

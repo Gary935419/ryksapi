@@ -9,7 +9,7 @@ use Home\Model\UserModel;
 use Home\Model\VerifyCodeModel;
 use Home\Model\TakerTypeModel;
 use Home\Model\RouteCityModel;
-
+use Home\Model\CarPriceSettingModel;
 /**
  * Class UserController
  * @package Home\Controller
@@ -17,6 +17,7 @@ use Home\Model\RouteCityModel;
  * @property VerifyCodeModel $VerifyCodeModel
  * @property TakerTypeModel $TakerTypeModel
  * @property RouteCityModel $RouteCityModel
+ * @property CarPriceSettingModel $CarPriceSettingModel
  * @property OrderComplaintModel $OrderComplaintModel
  */
 class UserController extends CommonController
@@ -27,6 +28,7 @@ class UserController extends CommonController
     private $TakerTypeModel;
     private $RouteCityModel;
     private $OrderComplaintModel;
+    private $CarPriceSettingModel;
 
     public function _initialize()
     {
@@ -36,6 +38,7 @@ class UserController extends CommonController
         $this->TakerTypeModel      = new TakerTypeModel();
         $this->RouteCityModel      = new RouteCityModel();
         $this->OrderComplaintModel = new OrderComplaintModel();
+        $this->CarPriceSettingModel = new CarPriceSettingModel();
     }
 
     /**
@@ -125,7 +128,19 @@ class UserController extends CommonController
             echoOk( 301 , '没有数据' , [] );
         }
     }
-
+    /**
+     * 公告
+     */
+    public function Contentinfo()
+    {
+        $data = $this->CarPriceSettingModel->get_car_price_setting_info(1);
+        if ($data) {
+            $content1 = empty($data['content1'])?'暂无公告':$data['content1'];
+            echoOk( 200 , '获取成功' , $content1 );
+        } else {
+            echoOk( 301 , '没有数据' , [] );
+        }
+    }
     /**
      * 司机认证
      */
