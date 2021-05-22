@@ -175,9 +175,9 @@ class GetBasicController extends CommonController
 //        $set_config['user_yingyezhizhao'] = $user_yingyezhizhao; //营业执照
         $set_config['wx_gongzhonghao'] = '如邮快运';
         $set_config['email']           = 'rysy@163.com';
-        $set_config['zhizhao']         = 'http://ryks.ychlkj.cn/Public/images/system/DOC_2020062817292200161_000.jpg';
+        $set_config['zhizhao']         = 'https://ryks.dltqwy.com/Public/images/system/DOC_2020062817292200161_000.jpg';
         $set_config['zhaomu_text']     = 'XXXX招募文案';
-        $set_config['zhaomu_code']     = 'http://ryks.ychlkj.cn/Public/images/system/code.png';
+        $set_config['zhaomu_code']     = 'https://ryks.dltqwy.com/Public/images/system/code.png';
 
         echoOk( 200 , '获取成功' , $set_config );
     }

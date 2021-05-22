@@ -113,8 +113,8 @@ class UserCallController extends CommonController
     //商品标记  否
     public $goods_tag="";
     //通知地址
-    public $notify_url="https://ryks.ychlkj.cn/index.php/home/PayRe/wxpay";
-    public $notify_url_new="https://ryks.ychlkj.cn/index.php/home/PayRe/wxpay_new";
+    public $notify_url="https://ryks.dltqwy.com/index.php/home/PayRe/wxpay";
+    public $notify_url_new="https://ryks.dltqwy.com/index.php/home/PayRe/wxpay_new";
     //交易类型
     public $trade_type="APP";
     //指定支付方式
@@ -898,7 +898,7 @@ class UserCallController extends CommonController
                     . "\"total_amount\": \"$money\","
                     . "\"product_code\":\"QUICK_MSECURITY_PAY\""
                     . "}";
-                $request->setNotifyUrl("https://ryks.ychlkj.cn/index.php/home/PayRe/alipay");
+                $request->setNotifyUrl("https://ryks.dltqwy.com/index.php/home/PayRe/alipay");
                 $request->setBizContent($bizcontent);
 
                 //这里和普通的接口调用不同，使用的是sdkExecute
@@ -1013,7 +1013,7 @@ class UserCallController extends CommonController
                     . "\"total_amount\": \"$money\","
                     . "\"product_code\":\"QUICK_MSECURITY_PAY\""
                     . "}";
-                $request->setNotifyUrl("https://ryks.ychlkj.cn/index.php/home/PayRe/alipay_new");
+                $request->setNotifyUrl("https://ryks.dltqwy.com/index.php/home/PayRe/alipay_new");
                 $request->setBizContent($bizcontent);
 
                 //这里和普通的接口调用不同，使用的是sdkExecute
@@ -1136,7 +1136,7 @@ class UserCallController extends CommonController
         $pay['body'] = '订单支付';               //商品描述
         $pay['mch_id'] = $mch_id;            //商户号
         $pay['nonce_str'] = $nonce;        //随机字符串
-        $pay['notify_url'] = 'http://ryks.ychlkj.cn/index.php/Home/PayRe/Wx_notify_url';
+        $pay['notify_url'] = 'https://ryks.dltqwy.com/index.php/Home/PayRe/Wx_notify_url';
         $pay['openid'] = $openid;
         $pay['out_trade_no'] = $orderCode;       //订单号
         $pay['spbill_create_ip'] = $_SERVER['SERVER_ADDR']; // 终端IP
@@ -1311,7 +1311,7 @@ class UserCallController extends CommonController
         $pay['body'] = '超时订单支付';               //商品描述
         $pay['mch_id'] = $mch_id;            //商户号
         $pay['nonce_str'] = $nonce;        //随机字符串
-        $pay['notify_url'] = 'http://ryks.ychlkj.cn/index.php/Home/PayRe/Wx_notify_url_new';
+        $pay['notify_url'] = 'https://ryks.dltqwy.com/index.php/Home/PayRe/Wx_notify_url_new';
         $pay['openid'] = $openid;
         $pay['out_trade_no'] = $orderCode;       //订单号
         $pay['spbill_create_ip'] = $_SERVER['SERVER_ADDR']; // 终端IP
@@ -1403,7 +1403,7 @@ class UserCallController extends CommonController
         $pay['body'] = '订单支付';               //商品描述
         $pay['mch_id'] = $mch_id;            //商户号
         $pay['nonce_str'] = $nonce;        //随机字符串
-        $pay['notify_url'] = 'http://ryks.ychlkj.cn/index.php/Home/PayRe/topup_treatment';
+        $pay['notify_url'] = 'https://ryks.dltqwy.com/index.php/Home/PayRe/topup_treatment';
         $pay['openid'] = $openid;
         $pay['out_trade_no'] = $orderCode;       //订单号
         $pay['spbill_create_ip'] = $_SERVER['SERVER_ADDR']; // 终端IP
@@ -1795,7 +1795,7 @@ class UserCallController extends CommonController
         if (file_exists("./Public/images/".$fileName)) {
             $src="/Public/images/".$fileName;
         }
-        echo json_encode(array('code' => 200,'src' => "https://ryks.ychlkj.cn".$src, 'msg' => "上传成功"));
+        echo json_encode(array('code' => 200,'src' => "https://ryks.dltqwy.com".$src, 'msg' => "上传成功"));
         return;
     }
     function GetRandStr($length){
