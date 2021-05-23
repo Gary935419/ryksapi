@@ -179,8 +179,10 @@ class PayReController extends Controller
      */
     public function alipay()
     {
-        if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
-            $ordernumber = array('eq', I('out_trade_no'));
+        $data = getRequest();
+        file_put_contents("data.txt",$data);
+        if (!empty($data['out_trade_no']) && $data['trade_status'] == 'TRADE_SUCCESS') {
+            $ordernumber = array('eq', $data['out_trade_no']);
             $pay_numberWhere['pay_number'] =$ordernumber;
             $bigOrderInfo = $this->OrderModel->where($pay_numberWhere)->find();
             $orderInfoWhere['big_order_id'] =$bigOrderInfo['id'];
@@ -209,7 +211,9 @@ class PayReController extends Controller
      */
     public function alipay_new()
     {
-        if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
+        $data = getRequest();
+        file_put_contents("data1.txt",$data);
+        if (!empty($data['out_trade_no']) && $data['trade_status'] == 'TRADE_SUCCESS') {
             $ordernumber = array('eq', I('out_trade_no'));
             $pay_numberWhere['delay_number'] =$ordernumber;
             $save = [
@@ -228,7 +232,9 @@ class PayReController extends Controller
      */
     public function alipay_new_top()
     {
-        if (I('out_trade_no') && I('trade_status') == 'TRADE_SUCCESS') {
+        $data = getRequest();
+        file_put_contents("data2.txt",$data);
+        if (!empty($data['out_trade_no']) && $data['trade_status'] == 'TRADE_SUCCESS') {
             $ordernumber = array('eq', I('out_trade_no'));
             $pay_numberWhere['paynumber'] =$ordernumber;
             $bigOrderInfo = $this->TopupModel->where($pay_numberWhere)->find();

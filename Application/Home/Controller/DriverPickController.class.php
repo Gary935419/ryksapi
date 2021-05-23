@@ -292,30 +292,40 @@ class DriverPickController extends CommonController
         switch ($data['handle']) {
             case 1: // 接单
                 sleep( 0.5 );
-                if ($data['taker_type_id'] == 1){
-                    if ($driverInfo['user_check'] != 1){
-                        echoOk( 301 , '你还没有认证！请先去认证！' );
-                    }
-                    $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
-                    $orderInfotown = array();
-                }else{
-                    if ($driverInfo['driving_check'] != 1){
-                        echoOk( 301 , '你还没有认证！请先去认证！' );
-                    }
-                    $orderInfo = array();
-                    $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
-                }
                 $todayStart= strtotime(date('Y-m-d 00:00:00', time()));
                 $todayEnd= strtotime(date('Y-m-d 23:59:59', time()));
                 $where_order  = 'driver_id = '.$data['id'];
                 $where_order .= ' AND getorder_time BETWEEN '.$todayStart.' AND '.$todayEnd;
                 $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
-                $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
-                $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
-                $OrderCount = floatval($OrderTrafficCount) + floatval($OrderTownCount);
-                if ($OrderCount >= $carPriceSettingInfo['km2']){
-                    echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
-                    break;
+                if ($data['taker_type_id'] == 1){
+                    if ($driverInfo['user_check'] != 1){
+                        echoOk( 301 , '你还没有认证！请先去认证！' );
+                    }
+                    $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
+                    $order_type = $orderInfo['order_type'];
+                    $where_order .= ' AND order_type = '.$order_type;
+                    $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
+                    if ($order_type == 1){
+                        if ($OrderTrafficCount >= 1){
+                            echoOk( 301 , '抱歉！专车送每天只能接一单！' );
+                        }
+                    }else{
+                        if ($OrderTrafficCount >= $carPriceSettingInfo['km2']){
+                            echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
+                        }
+                    }
+                    $orderInfotown = array();
+                }else{
+                    if ($driverInfo['driving_check'] != 1){
+                        echoOk( 301 , '你还没有认证！请先去认证！' );
+                    }
+                    $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
+                    if ($OrderTownCount >= 1){
+                        echoOk( 301 , '抱歉！代驾每天只能接一单！' );
+                        break;
+                    }
+                    $orderInfo = array();
+                    $orderInfotown = $this->OrderTownModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                 }
                 if (!empty($orderInfo)){
                     if (!empty( $orderInfo['driver_id'] )) {
@@ -750,7 +760,7 @@ class DriverPickController extends CommonController
     {
 
 
-        $re['company_address'] = '大连市甘井子区姚胜街14号1-1-5';
+        $re['company_address'] = '大连市甘井子区南关岭路61号';
         $re['company_name']    = '爱度网络信息科技（大连）有限公司';
         echoOk( 200 , '获取成功' , $re );
 
