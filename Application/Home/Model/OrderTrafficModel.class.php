@@ -503,10 +503,10 @@ class OrderTrafficModel extends Model
      * @param $id
      * @param $content
      */
-    public function evaluate( $id , $content )
+    public function evaluate( $id , $content , $star)
     {
         $where['id'] = array ( 'eq' , $id );
-        $this->where( $where )->save( array ( 'evaluate' => $content ) );
+        $this->where( $where )->save( array ( 'evaluate' => $content , 'star' => $star ) );
     }
     /**
      * 订单状态

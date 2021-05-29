@@ -304,10 +304,13 @@ class DriverPickController extends CommonController
                     $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                     $order_type = $orderInfo['order_type'];
                     $where_order .= ' AND order_type = '.$order_type;
+                    if ($order_type == 1){
+                        $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                    }
                     $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
                     if ($order_type == 1){
                         if ($OrderTrafficCount >= 1){
-                            echoOk( 301 , '抱歉！专车送每天只能接一单！' );
+                            echoOk( 301 , '抱歉！专车送每次只能接一单！' );
                         }
                     }else{
                         if ($OrderTrafficCount >= $carPriceSettingInfo['km2']){

@@ -10,12 +10,13 @@ use Home\Model\UserModel;
 use Home\Model\BalanceRecordModel;
 use Home\Model\TopupModel;
 use Home\Model\CouponModel;
-
+use Home\Model\CouponsetModel;
 /**
  * Class PayReController
  * @package Home\Controller
  * @property OrderModel $OrderModel
  * @property UserModel $UserModel
+ * @property CouponsetModel $CouponsetModel
  * @property BalanceRecordModel $BalanceRecordModel
  * @property OrderTrafficModel $OrderTrafficModel
  * @property OrderTownModel $OrderTownModel
@@ -32,6 +33,7 @@ class PayReController extends Controller
     private $OrderTownModel;
     private $TopupModel;
     private $CouponModel;
+    private $CouponsetModel;
 
     public function _initialize()
     {
@@ -42,7 +44,7 @@ class PayReController extends Controller
         $this->OrderTownModel = new OrderTownModel();
         $this->TopupModel = new TopupModel();
         $this->CouponModel = new CouponModel();
-
+        $this->CouponsetModel = new CouponsetModel();
     }
 
     /**
@@ -156,13 +158,14 @@ class PayReController extends Controller
             ];
             $this->TopupModel->save_info($bigOrderInfo['id'], $save);
             $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            $CouponsetModel = $this->CouponsetModel->get_user(1);
             if ($user_info['is_merchants'] == 1){
                 $coupon = [
-                    'user_id' => $user_info['id'],
-                    'money' => 1,
+                    'user_id' => $user_info_up['id'],
+                    'money' => $CouponsetModel['price'],
                     'type' => 1,
                     'add_time' => time(),
-                    'end_time' => time() + 604800
+                    'end_time' => $CouponsetModel['days'] * 86400 + time(),
                 ];
                 for ($i=1; $i<=5; $i++)
                 {
@@ -249,13 +252,14 @@ class PayReController extends Controller
             ];
             $this->TopupModel->save_info($bigOrderInfo['id'], $save);
             $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            $CouponsetModel = $this->CouponsetModel->get_user(1);
             if ($user_info['is_merchants'] == 1){
                 $coupon = [
-                    'user_id' => $user_info['id'],
-                    'money' => 1,
+                    'user_id' => $user_info_up['id'],
+                    'money' => $CouponsetModel['price'],
                     'type' => 1,
                     'add_time' => time(),
-                    'end_time' => time() + 604800
+                    'end_time' => $CouponsetModel['days'] * 86400 + time(),
                 ];
                 for ($i=1; $i<=5; $i++)
                 {
@@ -396,13 +400,14 @@ class PayReController extends Controller
             ];
             $this->TopupModel->save_info($bigOrderInfo['id'], $save);
             $this->UserModel->save_info($bigOrderInfo['uid'], $savenew);
+            $CouponsetModel = $this->CouponsetModel->get_user(1);
             if ($user_info['is_merchants'] == 1){
                 $coupon = [
-                    'user_id' => $user_info['id'],
-                    'money' => 1,
+                    'user_id' => $user_info_up['id'],
+                    'money' => $CouponsetModel['price'],
                     'type' => 1,
                     'add_time' => time(),
-                    'end_time' => time() + 604800
+                    'end_time' => $CouponsetModel['days'] * 86400 + time(),
                 ];
                 for ($i=1; $i<=5; $i++)
                 {

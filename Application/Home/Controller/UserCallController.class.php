@@ -20,6 +20,7 @@ use Home\Model\OrderModel;
 use Home\Model\MerchantsApplyModel;
 use Home\Model\MerchantsImgModel;
 use Home\Model\TopupModel;
+use Home\Model\CouponsetModel;
 use Home\Model\OrderIntercityModel;
 use Home\Model\OrderTownModel;
 use Home\Model\OrderInvoiceModel;
@@ -44,6 +45,7 @@ use Home\Model\BalanceRecordModel;
  * @property OrderModel $OrderModel
  * @property MerchantsApplyModel $MerchantsApplyModel
  * @property TopupModel $TopupModel
+ * @property CouponsetModel $CouponsetModel
  * @property OrderIntercityModel $OrderIntercityModel
  * @property OrderTownModel $OrderTownModel
  * @property OrderTrafficModel $OrderTrafficModel
@@ -70,6 +72,7 @@ class UserCallController extends CommonController
     private $MerchantsApplyModel;
     private $MerchantsImgModel;
     private $TopupModel;
+    private $CouponsetModel;
     private $OrderIntercityModel;
     private $OrderTownModel;
     private $OrderTrafficModel;
@@ -140,6 +143,7 @@ class UserCallController extends CommonController
         $this->MerchantsApplyModel = new MerchantsApplyModel();
         $this->MerchantsImgModel = new MerchantsImgModel();
         $this->TopupModel = new TopupModel();
+        $this->CouponsetModel = new CouponsetModel();
         $this->OrderIntercityModel = new OrderIntercityModel();
         $this->OrderTownModel = new OrderTownModel();
         $this->OrderTrafficModel = new OrderTrafficModel();
@@ -452,12 +456,13 @@ class UserCallController extends CommonController
             $invitation_code1_up = $user_info['invitation_code1_up'];
             $where['invitation_code1'] = $invitation_code1_up;
             $user_info_up = $this->UserModel->getWhereInfo($where);
+            $CouponsetModel = $this->CouponsetModel->get_user(1);
             $coupon = [
                 'user_id' => $user_info_up['id'],
-                'money' => 1,
+                'money' => $CouponsetModel['price'],
                 'type' => 1,
                 'add_time' => time(),
-                'end_time' => time() + 604800
+                'end_time' => $CouponsetModel['days'] * 86400 + time(),
             ];
             for ($i=1; $i<=5; $i++)
             {
@@ -583,12 +588,13 @@ class UserCallController extends CommonController
             $invitation_code1_up = $user_info['invitation_code1_up'];
             $where['invitation_code1'] = $invitation_code1_up;
             $user_info_up = $this->UserModel->getWhereInfo($where);
+            $CouponsetModel = $this->CouponsetModel->get_user(1);
             $coupon = [
                 'user_id' => $user_info_up['id'],
-                'money' => 1,
+                'money' => $CouponsetModel['price'],
                 'type' => 1,
                 'add_time' => time(),
-                'end_time' => time() + 604800
+                'end_time' => $CouponsetModel['days'] * 86400 + time(),
             ];
             for ($i=1; $i<=5; $i++)
             {
@@ -1561,15 +1567,15 @@ class UserCallController extends CommonController
     public function evaluate()
     {
         $data = self::$_DATA;
-        if (empty($data['type']) || empty($data['order_small_id']) || empty($data['evaluate'])) {
+        if (empty($data['star']) || empty($data['type']) || empty($data['order_small_id']) || empty($data['evaluate'])) {
             echoOk(301, '必填项不能为空', []);
         }
         switch ($data['type']) {
             case 1: // 专车 顺风 代买
-                $this->OrderTrafficModel->evaluate($data['order_small_id'], $data['evaluate']);
+                $this->OrderTrafficModel->evaluate($data['order_small_id'], $data['evaluate'], $data['star']);
                 break;
             case 2: // 代驾
-                $this->OrderTownModel->evaluate($data['order_small_id'], $data['evaluate']);
+                $this->OrderTownModel->evaluate($data['order_small_id'], $data['evaluate'], $data['star']);
                 break;
             default:
                 break;
