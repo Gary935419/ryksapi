@@ -385,9 +385,9 @@ class OrderTrafficModel extends Model
         if ($type == 1){
             $where = 'order_type = 1 and driver_id = ' . $con['id'];
         }elseif ($type == 2){
-            $where = 'order_type = 3 and driver_id = ' . $con['id'];
-        }else{
             $where = 'order_type = 2 and driver_id = ' . $con['id'];
+        }else{
+            $where = 'order_type = 3 and driver_id = ' . $con['id'];
         }
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;

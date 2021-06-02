@@ -62,13 +62,13 @@ class DriverOrderController extends CommonController
                 $lists = $this->OrderTrafficModel->get_order_lists($con,1);
                 break;
             case 2: // 代买
-                $lists = $this->OrderTrafficModel->get_order_lists($con,2);
+                $lists = $this->OrderTrafficModel->get_order_lists($con,3);
                 break;
             case 3: // 代驾
                 $lists = $this->OrderTownModel->get_order_lists($con);
                 break;
             case 4: // 顺路
-                $lists = $this->OrderTrafficModel->get_order_lists($con,3);
+                $lists = $this->OrderTrafficModel->get_order_lists($con,2);
                 break;
         }
 

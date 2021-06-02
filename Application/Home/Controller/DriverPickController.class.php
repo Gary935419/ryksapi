@@ -544,6 +544,60 @@ class DriverPickController extends CommonController
     }
 
     /**
+     * check订单是否取消
+     */
+    public function check_cancel()
+    {
+        $data = self::$_DATA;
+
+        if (empty( $data['taker_type_id'] ) || empty( $data['order_id'] )) {
+            echoOk( 301 , '必填项不能为空' , [] );
+        }
+        $result = array();
+        switch ($data['taker_type_id']) {
+            case 1:
+                //专车送  顺风送  代买
+                $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->find();
+                if ($orderInfo['order_status'] == 8){
+                    $result['msg'] = '当前订单无法取消~~~';
+                    $result['cancel_flg'] = 0;
+                    echoOk(301, '当前订单无法取消~~~', $result);
+                }
+                if ($orderInfo['status'] != 7) {
+                    $result['msg'] = '当前订单正在进行中~~~';
+                    $result['cancel_flg'] = 0;
+                    echoOk( 200 , '当前订单正在进行中~~~' ,$result);
+                } else {
+                    $result['msg'] = '当前订单目前已经取消了~~~';
+                    $result['cancel_flg'] = 1;
+                    echoOk( 301 , '当前订单目前已经取消了~~~' ,$result);
+                }
+                break;
+            case 2:
+                //代驾订单取消
+                $orderInfo = $this->OrderTownModel->where( [ 'id' => $data['order_id'] ] )->find();
+                if ($orderInfo['order_status'] == 8){
+                    $result['msg'] = '当前订单无法取消~~~';
+                    $result['cancel_flg'] = 0;
+                    echoOk(301, '当前订单无法取消~~~', $result);
+                }
+                if ($orderInfo['status'] != 7) {
+                    $result['msg'] = '当前订单正在进行中~~~';
+                    $result['cancel_flg'] = 0;
+                    echoOk( 200 , '当前订单正在进行中~~~' ,$result);
+                } else {
+                    $result['msg'] = '当前订单目前已经取消了~~~';
+                    $result['cancel_flg'] = 1;
+                    echoOk( 301 , '当前订单目前已经取消了~~~' ,$result);
+                }
+                break;
+            case 3:
+                echoOk( 301 , '数据错误' );
+                break;
+        }
+    }
+
+    /**
      * 乘客上车 (暂时不用)
      */
     public function aboard()
