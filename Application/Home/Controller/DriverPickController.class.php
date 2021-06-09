@@ -306,13 +306,13 @@ class DriverPickController extends CommonController
                     $where_order .= ' AND order_type = '.$order_type;
                     if ($order_type == 1){
                         $where_order .= ' AND order_status > 2 AND order_status < 8 ';
-                    }
-                    $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
-                    if ($order_type == 1){
+                        $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
                         if ($OrderTrafficCount >= 1){
                             echoOk( 301 , '抱歉！专车送每次只能接一单！' );
                         }
                     }else{
+                        $where_order .= ' AND order_status > 2 AND order_status <= 8 ';
+                        $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
                         if ($OrderTrafficCount >= $carPriceSettingInfo['km2']){
                             echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
                         }
@@ -516,10 +516,7 @@ class DriverPickController extends CommonController
             case 1:
                 //专车送  顺风送  代买
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
-                if ($orderInfo['order_status'] == 7){
-                    echoOk(301, '当前订单无法取消', []);
-                }
-                if ($orderInfo['order_status'] != 8) {
+                if ($orderInfo['status'] != 7 && $orderInfo['status'] != 6) {
                     $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
                     echoOk( 200 , '操作成功' ,$result);
                 } else {
@@ -561,7 +558,7 @@ class DriverPickController extends CommonController
                 if ($orderInfo['order_status'] == 8){
                     $result['msg'] = '当前订单无法取消~~~';
                     $result['cancel_flg'] = 0;
-                    echoOk(301, '当前订单无法取消~~~', $result);
+                    echoOk(200, '当前订单无法取消~~~', $result);
                 }
                 if ($orderInfo['status'] != 7) {
                     $result['msg'] = '当前订单正在进行中~~~';
@@ -570,7 +567,7 @@ class DriverPickController extends CommonController
                 } else {
                     $result['msg'] = '当前订单目前已经取消了~~~';
                     $result['cancel_flg'] = 1;
-                    echoOk( 301 , '当前订单目前已经取消了~~~' ,$result);
+                    echoOk( 200 , '当前订单目前已经取消了~~~' ,$result);
                 }
                 break;
             case 2:
@@ -579,7 +576,7 @@ class DriverPickController extends CommonController
                 if ($orderInfo['order_status'] == 8){
                     $result['msg'] = '当前订单无法取消~~~';
                     $result['cancel_flg'] = 0;
-                    echoOk(301, '当前订单无法取消~~~', $result);
+                    echoOk(200, '当前订单无法取消~~~', $result);
                 }
                 if ($orderInfo['status'] != 7) {
                     $result['msg'] = '当前订单正在进行中~~~';
@@ -588,7 +585,7 @@ class DriverPickController extends CommonController
                 } else {
                     $result['msg'] = '当前订单目前已经取消了~~~';
                     $result['cancel_flg'] = 1;
-                    echoOk( 301 , '当前订单目前已经取消了~~~' ,$result);
+                    echoOk( 200 , '当前订单目前已经取消了~~~' ,$result);
                 }
                 break;
             case 3:
@@ -800,9 +797,14 @@ class DriverPickController extends CommonController
             echoOk( 301 , '必填项不能为空' , [] );
         }
 
-        $where['id']               = $data['order_id'];
-        $orderData['order_status'] = $data['order_status'];
-        $status                    = $this->OrderTrafficModel->where( $where )->save( $orderData );
+        $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_id'] ] )->find();
+        if ($orderInfo['status'] != 7 && $orderInfo['status'] != 6) {
+            $where['id']               = $data['order_id'];
+            $orderData['order_status'] = $data['order_status'];
+            $status                    = $this->OrderTrafficModel->where( $where )->save( $orderData );
+        } else {
+            echoOk( 301 , '订单已经取消或已经完成' );
+        }
 
         if ($status) {
             echoOk( 200 , '修改成功' );

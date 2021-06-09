@@ -114,6 +114,29 @@ class OrderTownModel extends Model
         }
     }
 
+    public function online_send_cancel($driver_id)
+    {
+//        // ----- 模型 -----
+//        $userWorkingModel  = new \Home\Model\UserWorkingModel();
+//        // ----- 按条件搜索司机 -----
+//        $condition = [
+//            'longitude'      => 121.517859 ,
+//            'latitude'       => 38.876788 ,
+//        ];
+        $driver_ids[] = $driver_id;
+        // ----- 派单 -----
+        if (!empty($driver_ids)) { // 已找到司机
+            $title   = '如邮快送';
+            $content = '您有一个订单已经被取消了！';
+            $extras  = [];
+            $JModel  = new \Home\Model\JpushModel();
+            if (is_array( $driver_ids )) {
+                foreach ($driver_ids as $item) {
+                    $JModel->sj_send_alias_new( $item , $title , $content , $extras ); // 发送司机消息
+                }
+            }
+        }
+    }
     /**
      * 获取该用户正在进行的单子
      * @param $user_id
@@ -634,7 +657,7 @@ class OrderTownModel extends Model
      */
     public function get_order_lists_ing( $con )
     {
-        $where = 'driver_id = '.$con['driver_id'].' and status = 2 or status = 3 or status = 4';
+        $where = 'driver_id = '.$con['driver_id'].' and status != 7 and status != 6';
         $page   = $con['page'] ? $con['page'] : 1;
         $limit  = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;

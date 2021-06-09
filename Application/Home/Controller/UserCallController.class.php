@@ -836,12 +836,17 @@ class UserCallController extends CommonController
         switch ($data['type']) {
             case 1: // 专车 顺风 代买
                 $this->OrderTrafficModel->cancel_order($data['order_small_id']);
+                $order_info = $this->OrderTrafficModel->get_info($data['order_small_id']);
                 break;
             case 2: // 代驾
                 $this->OrderTownModel->cancel_order($data['order_small_id']);
+                $order_info =$this->OrderTownModel->get_info($data['order_small_id']);
                 break;
             default:
                 break;
+        }
+        if (!empty($order_info['driver_id'])){
+            $this->OrderTownModel->online_send_cancel($order_info['driver_id']);
         }
 
         echoOk(200, '操作成功');
@@ -1817,7 +1822,7 @@ class UserCallController extends CommonController
         //获取保价费
         $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
         $info['money'] = sprintf("%.2f", floatval($money) + floatval($tip) + floatval($protect_price));
-        $info['money'] = 0.01;
+        //['money'] = 0.01;
         $info['distance'] = sprintf("%.2f",floatval($distance_now) / 1000);
         $info['tip_price'] = sprintf("%.2f",$tip);
         echoOk(200, '获取成功', $info);

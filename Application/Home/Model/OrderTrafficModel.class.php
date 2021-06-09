@@ -463,7 +463,7 @@ class OrderTrafficModel extends Model
      */
     public function get_order_lists_ing($con)
     {
-        $where = 'driver_id = '.$con['driver_id'].' and order_status = 3 or order_status = 4 or order_status = 5 or order_status = 6 or order_status = 7';
+        $where = 'driver_id = '.$con['driver_id'].' and status != 7 and status != 6';
         $page = $con['page'] ? $con['page'] : 1;
         $limit = $con['limit'] ? $con['limit'] : 10;
         $limit1 = ($page - 1) * $limit . "," . $limit;
