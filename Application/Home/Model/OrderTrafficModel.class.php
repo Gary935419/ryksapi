@@ -18,6 +18,7 @@ class OrderTrafficModel extends Model
             echoOk(301, '当前订单无法取消', []);
         }
         $userinfo = $UserModel->get_info( $order['user_id'] );
+        $driverinfo = $UserModel->get_info( $order['driver_id'] );
         $order_price = $order['price'];
         $getorder_time = $order['getorder_time'];
         $now_time = time();
@@ -34,6 +35,9 @@ class OrderTrafficModel extends Model
                     $money_new = 0;
                 }else{
                     $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+                    //司机得5元
+                    $money_new1 = floatval($driverinfo['money']) + 5;
+                    $UserModel->save_info( $order['driver_id'] , array ( 'money' => $money_new1 ) );
                 }
             }
         }

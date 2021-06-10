@@ -162,6 +162,7 @@ class OrderTownModel extends Model
         $where['id'] = array ( 'eq' , $id );
         $order       = $this->get_info( $id );
         $userinfo = $UserModel->get_info( $order['user_id'] );
+        $driverinfo = $UserModel->get_info( $order['driver_id'] );
         $order_price = $order['price'];
         $getorder_time = $order['getorder_time'];
         $now_time = time();
@@ -178,6 +179,9 @@ class OrderTownModel extends Model
                     $money_new = 0;
                 }else{
                     $money_new = floatval($order_price) + floatval($userinfo['money']) - 5;
+                    //司机得5元
+                    $money_new1 = floatval($driverinfo['money']) + 5;
+                    $UserModel->save_info( $order['driver_id'] , array ( 'money' => $money_new1 ) );
                 }
             }
         }

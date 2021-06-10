@@ -109,7 +109,7 @@ class PayMerchantsController extends CommonController
             $this->UserWithdrawalModel->withdrawal_insert($insert);
             echoOk(200, '提现成功', $res);
         }else{
-            echoOk(301, '提现失败', $res);
+            echoOk(301, '提现失败,您的商户余额不足！', $res);
         }
     }
 
