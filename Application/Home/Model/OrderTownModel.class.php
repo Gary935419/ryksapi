@@ -531,6 +531,7 @@ class OrderTownModel extends Model
             $re['preferential_price'] = sprintf("%.2f",$order['preferential_price']);
             $re['distribution_km'] = sprintf("%.2f",$order['distribution_km']);
             $re['evaluate'] = empty($order['evaluate'])?'':$order['evaluate'];
+            $re['star'] = empty($order['star'])?'0':$order['star'];
             $re['user_id'] = $order['user_id'];
             $re['goods_remarks'] = $order['remarks'];
             $re['number'] = $order['number'];
