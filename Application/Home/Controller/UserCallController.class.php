@@ -1831,7 +1831,7 @@ class UserCallController extends CommonController
         //获取保价费
         $protect_price = empty($data['protect_price'])?0:$data['protect_price'];
         $info['money'] = sprintf("%.2f", floatval($money) + floatval($tip) + floatval($protect_price));
-        //['money'] = 0.01;
+        // $info['money'] = 0.01;
         $info['distance'] = sprintf("%.2f",floatval($distance_now) / 1000);
         $info['tip_price'] = sprintf("%.2f",$tip);
         echoOk(200, '获取成功', $info);
