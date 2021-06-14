@@ -87,5 +87,14 @@ class UserAddressModel extends Model
         $lists = $this->where($where)->limit($limit1)->order($order)->select();
         return $lists;
     }
-
+    /**
+     * 删除地址信息
+     * @param $id
+     * @return bool
+     */
+    public function del_address($id) {
+        $where['id'] = array('eq', $id);
+        $temp = $this->where($where)->delete();
+        return $temp;
+    }
 }

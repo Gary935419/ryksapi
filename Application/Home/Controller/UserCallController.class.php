@@ -825,6 +825,20 @@ class UserCallController extends CommonController
         echoOk(200, '获取成功', $re);
     }
     /**
+     * 删除常用地址
+     */
+    public function cancel_delete()
+    {
+        $data = self::$_DATA;
+        if (empty($data['id'])) {
+            echoOk(301, '必填项不能为空', []);
+        }
+
+        $this->UserAddressModel->del_address($data['id']);
+
+        echoOk(200, '操作成功');
+    }
+    /**
      * 取消订单
      */
     public function cancel()

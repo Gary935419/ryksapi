@@ -294,8 +294,7 @@ class DriverPickController extends CommonController
                 sleep( 0.5 );
                 $todayStart= strtotime(date('Y-m-d 00:00:00', time()));
                 $todayEnd= strtotime(date('Y-m-d 23:59:59', time()));
-                $where_order  = 'driver_id = '.$data['id'];
-                $where_order .= ' AND getorder_time BETWEEN '.$todayStart.' AND '.$todayEnd;
+
                 $carPriceSettingInfo = $this->CarPriceSettingModel->get_car_price_setting_info(4);
                 if ($data['taker_type_id'] == 1){
                     if ($driverInfo['user_check'] != 1){
@@ -303,18 +302,40 @@ class DriverPickController extends CommonController
                     }
                     $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['waiting_id'] ] )->find();
                     $order_type = $orderInfo['order_type'];
-                    $where_order .= ' AND order_type = '.$order_type;
+
+                    $where_order  = 'driver_id = '.$data['id'];
+                    $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                    $where_order .= ' AND status != 7 AND status != 1 ';
+                    $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
+                    if ($OrderTownCount >= 1){
+                        echoOk( 301 , '抱歉！您的代驾订单已经在进行中了,每次只能接一单！' );
+                        break;
+                    }
+                    $where_order  = 'driver_id = '.$data['id'];
+                    $where_order .= ' AND order_type != '.$order_type;
+                    $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                    $where_order .= ' AND status != 7 AND status != 1 ';
+                    $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
+                    if ($OrderTrafficCount >= 1){
+                        echoOk( 301 , '抱歉！您有其他类型地订单正在进行中！' );
+                    }
                     if ($order_type == 1){
+                        $where_order  = 'driver_id = '.$data['id'];
+                        $where_order .= ' AND order_type = '.$order_type;
                         $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                        $where_order .= ' AND status != 7 AND status != 1 ';
                         $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
                         if ($OrderTrafficCount >= 1){
-                            echoOk( 301 , '抱歉！专车送每次只能接一单！' );
+                            echoOk( 301 , '抱歉！您的专车订单已经在进行中了,每次只能接一单！' );
                         }
                     }else{
-                        $where_order .= ' AND order_status > 2 AND order_status <= 8 ';
+                        $where_order  = 'driver_id = '.$data['id'];
+                        $where_order .= ' AND order_type = '.$order_type;
+                        $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                        $where_order .= ' AND status != 7 AND status != 1 ';
                         $OrderTrafficCount = $this->OrderTrafficModel->where($where_order)->count();
                         if ($OrderTrafficCount >= $carPriceSettingInfo['km2']){
-                            echoOk( 301 , '当天已到最大接单量！请明天再次接单！' );
+                            echoOk( 301 , '抱歉！您当次已到最大接单量！请先完成当前所接得订单，之后再次接单！' );
                         }
                     }
                     $orderInfotown = array();
@@ -322,9 +343,21 @@ class DriverPickController extends CommonController
                     if ($driverInfo['driving_check'] != 1){
                         echoOk( 301 , '你还没有认证！请先去认证！' );
                     }
+                    $where_order1  = 'driver_id = '.$data['id'];
+                    $where_order1 .= ' AND order_status > 2 AND order_status < 8 ';
+                    $where_order1 .= ' AND status != 7 AND status != 1 ';
+                    $OrderTrafficCount = $this->OrderTrafficModel->where($where_order1)->count();
+                    if ($OrderTrafficCount >= 1){
+                        echoOk( 301 , '抱歉！您有其他类型地订单正在进行中！！' );
+                        break;
+                    }
+                    $where_order  = 'driver_id = '.$data['id'];
+                    $where_order .= ' AND order_status > 2 AND order_status < 8 ';
+                    $where_order .= ' AND status != 7 AND status != 1 ';
+//                    $where_order .= ' AND getorder_time BETWEEN '.$todayStart.' AND '.$todayEnd;
                     $OrderTownCount = $this->OrderTownModel->where($where_order)->count();
                     if ($OrderTownCount >= 1){
-                        echoOk( 301 , '抱歉！代驾每天只能接一单！' );
+                        echoOk( 301 , '抱歉！您的代驾订单已经在进行中了,每次只能接一单！！' );
                         break;
                     }
                     $orderInfo = array();
@@ -516,6 +549,9 @@ class DriverPickController extends CommonController
             case 1:
                 //专车送  顺风送  代买
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
+                if ($orderInfo['order_status'] == 7){
+                    echoOk(301, '当前订单无法取消', []);
+                }
                 if ($orderInfo['status'] != 7 && $orderInfo['status'] != 6) {
                     $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
                     echoOk( 200 , '操作成功' ,$result);
