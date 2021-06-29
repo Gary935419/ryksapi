@@ -14,8 +14,8 @@ class OrderTrafficModel extends Model
         $UserModel  = new \Home\Model\UserModel();
         $where['id'] = $id;
         $order = $this->get_info($id);
-        if ($order['order_status'] == 7){
-            echoOk(301, '当前订单无法取消', []);
+        if ($order['order_status'] == 6 || $order['order_status'] == 7 || $order['order_status'] == 8){
+            echoOk(301, '当前订单已经在行使中，无法取消！', []);
         }
         $userinfo = $UserModel->get_info( $order['user_id'] );
         $driverinfo = $UserModel->get_info( $order['driver_id'] );

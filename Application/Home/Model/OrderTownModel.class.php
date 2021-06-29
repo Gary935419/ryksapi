@@ -161,6 +161,9 @@ class OrderTownModel extends Model
         $UserModel  = new \Home\Model\UserModel();
         $where['id'] = array ( 'eq' , $id );
         $order       = $this->get_info( $id );
+        if ($order['status'] == 7 && $order['status'] == 6) {
+            echoOk( 301 , '当前订单无法取消！' );
+        }
         $userinfo = $UserModel->get_info( $order['user_id'] );
         $driverinfo = $UserModel->get_info( $order['driver_id'] );
         $order_price = $order['price'];

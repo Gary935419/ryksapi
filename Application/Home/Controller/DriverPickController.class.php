@@ -549,15 +549,11 @@ class DriverPickController extends CommonController
             case 1:
                 //专车送  顺风送  代买
                 $orderInfo = $this->OrderTrafficModel->where( [ 'id' => $data['order_small_id'] ] )->find();
-                if ($orderInfo['order_status'] == 7){
-                    echoOk(301, '当前订单无法取消', []);
+                if ($orderInfo['order_status'] == 6 || $orderInfo['order_status'] == 7 || $orderInfo['order_status'] == 8){
+                    echoOk(301, '当前订单已经在行使中，无法取消！', []);
                 }
-                if ($orderInfo['status'] != 7 && $orderInfo['status'] != 6) {
-                    $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
-                    echoOk( 200 , '操作成功' ,$result);
-                } else {
-                    echoOk( 301 , '订单已经取消' );
-                }
+                $result = $this->OrderTrafficModel->cancel_order_driver( $data['order_small_id'] ); // 取消订单
+                echoOk( 200 , '操作成功' ,$result);
                 break;
             case 2:
                 //代驾订单取消
@@ -566,7 +562,7 @@ class DriverPickController extends CommonController
                     $result = $this->OrderTownModel->cancel_order_driver($data['order_small_id']);
                     echoOk( 200 , '操作成功' ,$result);
                 } else {
-                    echoOk( 301 , '订单已经取消' );
+                    echoOk( 301 , '当前订单无法取消！' );
                 }
                 break;
             case 3:
